@@ -15,6 +15,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tprm.spi.dto.ThirdPartyDTO;
+import com.tprm.spi.exception.ThirdPartyNotFoundException;
+import com.tprm.spi.exception.ThirdpartyNameConflictException;
 import com.tprm.spi.service.ThirdPartyService;
 
 import jakarta.validation.Valid;
@@ -41,9 +43,14 @@ public class ThirdPartyController {
     }
 
     @PostMapping
-    public ResponseEntity<ThirdPartyDTO> createThirdParty(@RequestBody @Valid ThirdPartyDTO thirdPartyDTO) {
-        ThirdPartyDTO craetedThirdPartyDTO = thirdPartyService.createThirdParty(thirdPartyDTO);
-        return ResponseEntity.status(HttpStatus.CREATED).body(craetedThirdPartyDTO);
+    public ResponseEntity<String> createThirdParty(@RequestBody @Valid ThirdPartyDTO thirdPartyDTO) {
+        try {
+            thirdPartyService.createThirdParty(thirdPartyDTO);
+            return ResponseEntity.status(HttpStatus.CREATED).body("Third Party Created Successfully");
+        } catch (ThirdpartyNameConflictException thirdpartyNameConflictException) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(thirdpartyNameConflictException.getMessage());
+        }
+
     }
 
     @PutMapping(path = "/{id}")
@@ -55,6 +62,11 @@ public class ThirdPartyController {
 
     @DeleteMapping(path = "/{id}")
     public ResponseEntity<String> deleteThirdParty(@PathVariable String id) {
-        return thirdPartyService.deleteThirdParty(id);
+        try {
+            thirdPartyService.deleteThirdParty(id);
+            return ResponseEntity.ok("Third Party Deleted Successfully");
+        } catch (ThirdPartyNotFoundException thirdPartyNotFoundException) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Third Party Does Not Exist in DataBase...");
+        }
     }
 }

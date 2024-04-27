@@ -5,13 +5,12 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.BeanUtils;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import com.tprm.spi.dto.ThirdPartyDTO;
 import com.tprm.spi.entity.ThirdParty;
 import com.tprm.spi.exception.ThirdPartyNotFoundException;
+import com.tprm.spi.exception.ThirdpartyNameConflictException;
 import com.tprm.spi.repository.ThirdPartyRepository;
 
 @Service
@@ -36,11 +35,9 @@ public class ThirdPartyService {
         return thirdparty.map(this::convertToThirdPartyDTO);
     }
 
-    public ThirdPartyDTO createThirdParty(ThirdPartyDTO thirdPartyDTO) {
-        try {
-
-        } catch (Exception e) {
-
+    public ThirdPartyDTO createThirdParty(ThirdPartyDTO thirdPartyDTO) throws ThirdpartyNameConflictException {
+        if (thirdPartyRepository.findByName(thirdPartyDTO.getName()).isPresent()) {
+            throw new ThirdpartyNameConflictException("Third Party already exists in the DataBase...");
         }
         ThirdParty thirdParty = convertToThirdPartyEntity(thirdPartyDTO);
         return convertToThirdPartyDTO(thirdPartyRepository.save(thirdParty));
@@ -55,19 +52,15 @@ public class ThirdPartyService {
                 }).orElse(null));
     }
 
-    public ResponseEntity<String> deleteThirdParty(String id) {
+    public void deleteThirdParty(String id) throws ThirdPartyNotFoundException {
         try {
             if (getThirdPartyById(id).isPresent()) {
                 thirdPartyRepository.deleteById(id);
-                return ResponseEntity.ok("Third Party Deleted Successfully..");
             } else {
                 throw new ThirdPartyNotFoundException("Third Party Not Found in the DataBase");
             }
-        } catch (ThirdPartyNotFoundException thirdPartyNotFoundException) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(thirdPartyNotFoundException.getMessage());
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Failed to delete Third Party: " + e.getMessage());
+        } finally {
+
         }
 
     }

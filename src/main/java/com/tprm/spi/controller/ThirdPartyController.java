@@ -63,8 +63,8 @@ public class ThirdPartyController {
     @DeleteMapping(path = "/{id}")
     public ResponseEntity<String> deleteThirdParty(@PathVariable String id) {
         try {
-            thirdPartyService.deleteThirdParty(id);
-            return ResponseEntity.ok("Third Party Deleted Successfully");
+            String thirdPartyDeletionStatus = thirdPartyService.deleteThirdParty(id);
+            return ResponseEntity.ok(thirdPartyDeletionStatus);
         } catch (ThirdPartyNotFoundException thirdPartyNotFoundException) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Third Party Does Not Exist in DataBase...");
         }

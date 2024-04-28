@@ -52,10 +52,11 @@ public class ThirdPartyService {
                 }).orElse(null));
     }
 
-    public void deleteThirdParty(String id) throws ThirdPartyNotFoundException {
+    public String deleteThirdParty(String id) throws ThirdPartyNotFoundException {
         try {
             if (getThirdPartyById(id).isPresent()) {
                 thirdPartyRepository.deleteById(id);
+                return "Third Party Deleted Successfully";
             } else {
                 throw new ThirdPartyNotFoundException("Third Party Not Found in the DataBase");
             }

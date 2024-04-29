@@ -3,6 +3,8 @@ package com.tprm.spi.repository;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
@@ -14,6 +16,9 @@ import com.tprm.spi.entity.ThirdParty;
 @Repository
 public interface ThirdPartyRepository extends MongoRepository<ThirdParty, String> {
     Optional<ThirdParty> findByName(String name);
+
+    @SuppressWarnings("null")
+    Page<ThirdParty> findAll(Pageable pageable);
 
     default List<ThirdParty> getThirdPartiesbyFilter(ThirdParty thirdParty, MongoTemplate mongoTemplate) {
         Query query = new Query();
@@ -37,4 +42,5 @@ public interface ThirdPartyRepository extends MongoRepository<ThirdParty, String
         List<ThirdParty> thirdParties = mongoTemplate.find(query, ThirdParty.class);
         return thirdParties;
     }
+
 }

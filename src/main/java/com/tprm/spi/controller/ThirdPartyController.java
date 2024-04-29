@@ -3,6 +3,7 @@ package com.tprm.spi.controller;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -24,11 +25,8 @@ import jakarta.validation.Valid;
 @RestController
 @RequestMapping(path = "/thirdparties")
 public class ThirdPartyController {
-    private final ThirdPartyService thirdPartyService;
-
-    public ThirdPartyController(ThirdPartyService thirdPartyService) {
-        this.thirdPartyService = thirdPartyService;
-    }
+    @Autowired
+    private ThirdPartyService thirdPartyService;
 
     @GetMapping
     public ResponseEntity<List<ThirdPartyDTO>> getAllThirdParties() {
@@ -69,4 +67,11 @@ public class ThirdPartyController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Third Party Does Not Exist in DataBase...");
         }
     }
+
+    @PostMapping("/filters")
+    public ResponseEntity<List<ThirdPartyDTO>> getThirdPartybyFilter(@RequestBody ThirdPartyDTO thirdPartyDTO) {
+        return ResponseEntity.status(HttpStatus.OK).body(thirdPartyService.getThirdPartybyFilter(thirdPartyDTO));
+
+    }
+
 }

@@ -82,26 +82,27 @@ public class ThirdPartyService {
     }
 
     public List<ThirdPartyDTO> getThirdPartybyFilter(ThirdPartyDTO thirdPartyDTO) {
-        // List<ThirdParty> filteredThirdParties =
-        // thirdPartyRepository.findThirdPartiesByFilter(
-        // Optional.ofNullable(thirdPartyDTO.getName()),
-        // Optional.ofNullable(thirdPartyDTO.getAddress()),
-        // Optional.ofNullable(thirdPartyDTO.getPhoneNumber()),
-        // Optional.ofNullable(thirdPartyDTO.getEmailAddress()),
-        // Optional.ofNullable(thirdPartyDTO.getPrimaryContactName()),
-        // Optional.ofNullable(thirdPartyDTO.getPrimaryContactEmail()),
-        // Optional.ofNullable(thirdPartyDTO.getPrimaryContactTitle()),
-        // Optional.ofNullable(thirdPartyDTO.getLegalStructure()), mongoTemplate);
-        // System.out.println(filteredThirdParties.toString());
-        // return filteredThirdParties.stream()
-        // .map(this::convertToThirdPartyDTO)
-        // .collect(Collectors.toList());
+
         Query query = new Query();
-        query.addCriteria(new Criteria("name").is(thirdPartyDTO.getName()));
+        if (thirdPartyDTO.getName() != null)
+            query.addCriteria(Criteria.where("name").is(thirdPartyDTO.getName()));
+        if (thirdPartyDTO.getAddress() != null)
+            query.addCriteria(Criteria.where("address").is(thirdPartyDTO.getAddress()));
+        if (thirdPartyDTO.getEmailAddress() != null)
+            query.addCriteria(Criteria.where("emailAddress").is(thirdPartyDTO.getEmailAddress()));
+        if (thirdPartyDTO.getLegalStructure() != null)
+            query.addCriteria(Criteria.where("legalStructure").is(thirdPartyDTO.getLegalStructure()));
+        if (thirdPartyDTO.getPhoneNumber() != null)
+            query.addCriteria(Criteria.where("phoneNumber").is(thirdPartyDTO.getPhoneNumber()));
+        if (thirdPartyDTO.getPrimaryContactName() != null)
+            query.addCriteria(Criteria.where("primaryContactName").is(thirdPartyDTO.getPrimaryContactName()));
+        if (thirdPartyDTO.getPrimaryContactEmail() != null)
+            query.addCriteria(Criteria.where("primaryContactEmail").is(thirdPartyDTO.getPrimaryContactEmail()));
+        if (thirdPartyDTO.getPrimaryContactTitle() != null)
+            query.addCriteria(Criteria.where("primaryContactTitle").is(thirdPartyDTO.getPrimaryContactTitle()));
 
         List<ThirdParty> thirdPartyDTOs = mongoTemplate.find(query, ThirdParty.class);
 
-        System.out.println(thirdPartyDTOs.toString());
         return thirdPartyDTOs.stream()
                 .map(this::convertToThirdPartyDTO)
                 .collect(Collectors.toList());

@@ -6,6 +6,9 @@ import java.util.stream.Collectors;
 
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.stereotype.Service;
 
@@ -87,5 +90,11 @@ public class ThirdPartyService {
         return thirdParties.stream()
                 .map(this::convertToThirdPartyDTO)
                 .collect(Collectors.toList());
+    }
+
+    public Page<ThirdPartyDTO> getAllThirdParties(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<ThirdParty> thirdPartiesPage = thirdPartyRepository.findAll(pageable);
+        return thirdPartiesPage.map(this::convertToThirdPartyDTO);
     }
 }

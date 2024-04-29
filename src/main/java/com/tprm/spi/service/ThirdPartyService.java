@@ -5,6 +5,10 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Service;
 
 import com.tprm.spi.dto.ThirdPartyDTO;
@@ -15,12 +19,11 @@ import com.tprm.spi.repository.ThirdPartyRepository;
 
 @Service
 public class ThirdPartyService {
+    @Autowired
+    private ThirdPartyRepository thirdPartyRepository;
 
-    private final ThirdPartyRepository thirdPartyRepository;
-
-    public ThirdPartyService(ThirdPartyRepository thirdPartyRepository) {
-        this.thirdPartyRepository = thirdPartyRepository;
-    }
+    @Autowired
+    private MongoTemplate mongoTemplate;
 
     public List<ThirdPartyDTO> getAllThirdParties() {
         List<ThirdParty> thirdParties = thirdPartyRepository.findAll();
@@ -76,5 +79,31 @@ public class ThirdPartyService {
         ThirdPartyDTO thirdPartyDTO = new ThirdPartyDTO();
         BeanUtils.copyProperties(thirdParty, thirdPartyDTO);
         return thirdPartyDTO;
+    }
+
+    public List<ThirdPartyDTO> getThirdPartybyFilter(ThirdPartyDTO thirdPartyDTO) {
+        // List<ThirdParty> filteredThirdParties =
+        // thirdPartyRepository.findThirdPartiesByFilter(
+        // Optional.ofNullable(thirdPartyDTO.getName()),
+        // Optional.ofNullable(thirdPartyDTO.getAddress()),
+        // Optional.ofNullable(thirdPartyDTO.getPhoneNumber()),
+        // Optional.ofNullable(thirdPartyDTO.getEmailAddress()),
+        // Optional.ofNullable(thirdPartyDTO.getPrimaryContactName()),
+        // Optional.ofNullable(thirdPartyDTO.getPrimaryContactEmail()),
+        // Optional.ofNullable(thirdPartyDTO.getPrimaryContactTitle()),
+        // Optional.ofNullable(thirdPartyDTO.getLegalStructure()), mongoTemplate);
+        // System.out.println(filteredThirdParties.toString());
+        // return filteredThirdParties.stream()
+        // .map(this::convertToThirdPartyDTO)
+        // .collect(Collectors.toList());
+        Query query = new Query();
+        query.addCriteria(new Criteria("name").is(thirdPartyDTO.getName()));
+
+        List<ThirdParty> thirdPartyDTOs = mongoTemplate.find(query, ThirdParty.class);
+
+        System.out.println(thirdPartyDTOs.toString());
+        return thirdPartyDTOs.stream()
+                .map(this::convertToThirdPartyDTO)
+                .collect(Collectors.toList());
     }
 }

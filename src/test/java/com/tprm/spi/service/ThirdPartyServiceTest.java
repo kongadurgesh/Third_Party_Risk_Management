@@ -13,9 +13,11 @@ import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.boot.test.autoconfigure.data.mongo.DataMongoTest;
 import com.tprm.spi.dto.ThirdPartyDTO;
 import com.tprm.spi.entity.ThirdParty;
@@ -24,6 +26,7 @@ import com.tprm.spi.exception.ThirdpartyNameConflictException;
 import com.tprm.spi.repository.ThirdPartyRepository;
 
 @DataMongoTest
+@ExtendWith(MockitoExtension.class)
 public class ThirdPartyServiceTest {
     @InjectMocks
     private ThirdPartyService thirdPartyService;

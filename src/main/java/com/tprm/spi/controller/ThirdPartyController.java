@@ -69,8 +69,8 @@ public class ThirdPartyController {
     }
 
     @PostMapping("/filters")
-    public ResponseEntity<List<ThirdPartyDTO>> getThirdPartybyFilter(@RequestBody ThirdPartyDTO thirdPartyDTO) {
-        return ResponseEntity.status(HttpStatus.OK).body(thirdPartyService.getThirdPartybyFilter(thirdPartyDTO));
+    public ResponseEntity<List<ThirdPartyDTO>> getThirdPartiesByFilter(@RequestBody ThirdPartyDTO thirdPartyDTO) {
+        return ResponseEntity.status(HttpStatus.OK).body(thirdPartyService.getThirdPartiesByFilter(thirdPartyDTO));
 
     }
 

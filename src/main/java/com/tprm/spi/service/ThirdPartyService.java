@@ -7,8 +7,6 @@ import java.util.stream.Collectors;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
-import org.springframework.data.mongodb.core.query.Criteria;
-import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Service;
 
 import com.tprm.spi.dto.ThirdPartyDTO;
@@ -81,28 +79,12 @@ public class ThirdPartyService {
         return thirdPartyDTO;
     }
 
-    public List<ThirdPartyDTO> getThirdPartybyFilter(ThirdPartyDTO thirdPartyDTO) {
-        // List<ThirdParty> filteredThirdParties =
-        // thirdPartyRepository.findThirdPartiesByFilter(
-        // Optional.ofNullable(thirdPartyDTO.getName()),
-        // Optional.ofNullable(thirdPartyDTO.getAddress()),
-        // Optional.ofNullable(thirdPartyDTO.getPhoneNumber()),
-        // Optional.ofNullable(thirdPartyDTO.getEmailAddress()),
-        // Optional.ofNullable(thirdPartyDTO.getPrimaryContactName()),
-        // Optional.ofNullable(thirdPartyDTO.getPrimaryContactEmail()),
-        // Optional.ofNullable(thirdPartyDTO.getPrimaryContactTitle()),
-        // Optional.ofNullable(thirdPartyDTO.getLegalStructure()), mongoTemplate);
-        // System.out.println(filteredThirdParties.toString());
-        // return filteredThirdParties.stream()
-        // .map(this::convertToThirdPartyDTO)
-        // .collect(Collectors.toList());
-        Query query = new Query();
-        query.addCriteria(new Criteria("name").is(thirdPartyDTO.getName()));
+    public List<ThirdPartyDTO> getThirdPartiesByFilter(ThirdPartyDTO thirdPartyDTO) {
 
-        List<ThirdParty> thirdPartyDTOs = mongoTemplate.find(query, ThirdParty.class);
+        List<ThirdParty> thirdParties = thirdPartyRepository
+                .getThirdPartiesbyFilter(convertToThirdPartyEntity(thirdPartyDTO), mongoTemplate);
 
-        System.out.println(thirdPartyDTOs.toString());
-        return thirdPartyDTOs.stream()
+        return thirdParties.stream()
                 .map(this::convertToThirdPartyDTO)
                 .collect(Collectors.toList());
     }

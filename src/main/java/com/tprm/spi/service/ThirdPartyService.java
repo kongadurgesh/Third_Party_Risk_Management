@@ -7,8 +7,6 @@ import java.util.stream.Collectors;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
-import org.springframework.data.mongodb.core.query.Criteria;
-import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Service;
 
 import com.tprm.spi.dto.ThirdPartyDTO;
@@ -81,29 +79,12 @@ public class ThirdPartyService {
         return thirdPartyDTO;
     }
 
-    public List<ThirdPartyDTO> getThirdPartybyFilter(ThirdPartyDTO thirdPartyDTO) {
+    public List<ThirdPartyDTO> getThirdPartiesByFilter(ThirdPartyDTO thirdPartyDTO) {
 
-        Query query = new Query();
-        if (thirdPartyDTO.getName() != null)
-            query.addCriteria(Criteria.where("name").is(thirdPartyDTO.getName()));
-        if (thirdPartyDTO.getAddress() != null)
-            query.addCriteria(Criteria.where("address").is(thirdPartyDTO.getAddress()));
-        if (thirdPartyDTO.getEmailAddress() != null)
-            query.addCriteria(Criteria.where("emailAddress").is(thirdPartyDTO.getEmailAddress()));
-        if (thirdPartyDTO.getLegalStructure() != null)
-            query.addCriteria(Criteria.where("legalStructure").is(thirdPartyDTO.getLegalStructure()));
-        if (thirdPartyDTO.getPhoneNumber() != null)
-            query.addCriteria(Criteria.where("phoneNumber").is(thirdPartyDTO.getPhoneNumber()));
-        if (thirdPartyDTO.getPrimaryContactName() != null)
-            query.addCriteria(Criteria.where("primaryContactName").is(thirdPartyDTO.getPrimaryContactName()));
-        if (thirdPartyDTO.getPrimaryContactEmail() != null)
-            query.addCriteria(Criteria.where("primaryContactEmail").is(thirdPartyDTO.getPrimaryContactEmail()));
-        if (thirdPartyDTO.getPrimaryContactTitle() != null)
-            query.addCriteria(Criteria.where("primaryContactTitle").is(thirdPartyDTO.getPrimaryContactTitle()));
+        List<ThirdParty> thirdParties = thirdPartyRepository
+                .getThirdPartiesbyFilter(convertToThirdPartyEntity(thirdPartyDTO), mongoTemplate);
 
-        List<ThirdParty> thirdPartyDTOs = mongoTemplate.find(query, ThirdParty.class);
-
-        return thirdPartyDTOs.stream()
+        return thirdParties.stream()
                 .map(this::convertToThirdPartyDTO)
                 .collect(Collectors.toList());
     }

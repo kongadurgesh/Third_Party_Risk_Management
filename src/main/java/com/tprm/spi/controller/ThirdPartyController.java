@@ -89,4 +89,11 @@ public class ThirdPartyController {
         return ResponseEntity.status(HttpStatus.OK)
                 .body(thirdPartyService.getThirdPartyFinancials(thirdPartyId));
     }
+
+    @GetMapping("/financials/revenue")
+    public ResponseEntity<List<ThirdPartyDTO>> getThirdPartiesByRevenueRange(
+            @RequestParam(required = false) Double fromRange, @RequestParam(required = false) Double toRange) {
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(thirdPartyService.getThirdPartiesByRevenueRange(fromRange, toRange));
+    }
 }

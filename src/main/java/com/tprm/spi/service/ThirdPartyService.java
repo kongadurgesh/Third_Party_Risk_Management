@@ -111,4 +111,15 @@ public class ThirdPartyService {
     public ThirdPartyFinancialsDTO getThirdPartyFinancials(String thirdPartyId) {
         return getThirdPartyById(thirdPartyId).get().getFinancials();
     }
+
+    public List<ThirdPartyDTO> getThirdPartiesByRevenueRange(Double fromRange, Double toRange) {
+        List<ThirdPartyDTO> thirdPartyDTOs = getAllThirdParties();
+        List<String> filteredThirdPartyIds = thirdPartyFinancialsService.getThirdPartyFinancialIdsForRevenueRange(
+                fromRange,
+                toRange);
+        return thirdPartyDTOs.stream()
+                .filter(thirdPartyDTO -> thirdPartyDTO.getFinancials() != null)
+                .filter(thirdPartyDTO -> filteredThirdPartyIds.contains(thirdPartyDTO.getFinancials().getFinancialID()))
+                .collect(Collectors.toList());
+    }
 }

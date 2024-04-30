@@ -69,7 +69,9 @@ public class ThirdPartyService {
 
     public String deleteThirdParty(String id) throws ThirdPartyNotFoundException {
         try {
-            if (getThirdPartyById(id).isPresent()) {
+            Optional<ThirdPartyDTO> thirdPartyDTO = getThirdPartyById(id);
+            if (thirdPartyDTO.isPresent()) {
+                thirdPartyFinancialsService.deleteFinancialsbyId(thirdPartyDTO.get().getFinancials().getFinancialID());
                 thirdPartyRepository.deleteById(id);
                 return "Third Party Deleted Successfully";
             } else {

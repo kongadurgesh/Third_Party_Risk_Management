@@ -5,7 +5,6 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.modelmapper.ModelMapper;
-import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -58,18 +57,22 @@ public class ThirdPartyService {
         return convertToThirdPartyDTO(thirdPartyRepository.save(thirdParty));
     }
 
-    public Optional<ThirdPartyDTO> updateThirdParty(String id, ThirdPartyDTO thirdPartyDTO) {
+    public Optional<ThirdPartyDTO> updateThirdParty(String id, ThirdPartyDTO thirdPartyDTOToUpdate) {
         return Optional.of(thirdPartyRepository.findById(id)
                 .map(existingThirdParty -> {
-                    BeanUtils.copyProperties(thirdPartyDTO, existingThirdParty);
+                    modelMapper.map(thirdPartyDTOToUpdate, existingThirdParty);
                     existingThirdParty.setId(id);
+                    thirdPartyFinancialsService.saveFinancials(
+                            modelMapper.map(existingThirdParty.getFinancials(), ThirdPartyFinancialsDTO.class));
                     return convertToThirdPartyDTO(thirdPartyRepository.save(existingThirdParty));
                 }).orElse(null));
     }
 
     public String deleteThirdParty(String id) throws ThirdPartyNotFoundException {
         try {
-            if (getThirdPartyById(id).isPresent()) {
+            Optional<ThirdPartyDTO> thirdPartyDTO = getThirdPartyById(id);
+            if (thirdPartyDTO.isPresent()) {
+                thirdPartyFinancialsService.deleteFinancialsbyId(thirdPartyDTO.get().getFinancials().getFinancialID());
                 thirdPartyRepository.deleteById(id);
                 return "Third Party Deleted Successfully";
             } else {

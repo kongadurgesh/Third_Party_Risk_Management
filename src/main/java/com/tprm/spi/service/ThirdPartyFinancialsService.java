@@ -21,6 +21,10 @@ public class ThirdPartyFinancialsService {
         return convertToThirdPartyFinancialsDTO(thirdPartyFinancialsRepository.save(thirdPartyFinancials));
     }
 
+    public void deleteFinancialsbyId(String id) {
+        thirdPartyFinancialsRepository.deleteById(id);
+    }
+
     private ThirdPartyFinancials convertToThirdPartyFinancialsEntity(ThirdPartyFinancialsDTO thirdPartyFinancialsDTO) {
         return modelMapper.map(thirdPartyFinancialsDTO, ThirdPartyFinancials.class);
     }

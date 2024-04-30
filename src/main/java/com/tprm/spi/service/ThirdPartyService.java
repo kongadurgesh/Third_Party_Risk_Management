@@ -107,4 +107,8 @@ public class ThirdPartyService {
         Page<ThirdParty> thirdPartiesPage = thirdPartyRepository.findAll(pageable);
         return thirdPartiesPage.map(this::convertToThirdPartyDTO);
     }
+
+    public ThirdPartyFinancialsDTO getThirdPartyFinancials(String thirdPartyId) {
+        return getThirdPartyById(thirdPartyId).get().getFinancials();
+    }
 }

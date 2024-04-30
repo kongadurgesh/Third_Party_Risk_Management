@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tprm.spi.dto.ThirdPartyDTO;
+import com.tprm.spi.dto.ThirdPartyFinancialsDTO;
 import com.tprm.spi.exception.ThirdPartyNotFoundException;
 import com.tprm.spi.exception.ThirdpartyNameConflictException;
 import com.tprm.spi.service.ThirdPartyService;
@@ -80,5 +81,12 @@ public class ThirdPartyController {
     public ResponseEntity<Page<ThirdPartyDTO>> getAllThirdParties(@RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
         return ResponseEntity.status(HttpStatus.OK).body(thirdPartyService.getAllThirdParties(page, size));
+    }
+
+    @GetMapping("/{id}/financials")
+    public ResponseEntity<ThirdPartyFinancialsDTO> getThirdPartyFinancials(
+            @PathVariable(name = "id") String thirdPartyId) {
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(thirdPartyService.getThirdPartyFinancials(thirdPartyId));
     }
 }

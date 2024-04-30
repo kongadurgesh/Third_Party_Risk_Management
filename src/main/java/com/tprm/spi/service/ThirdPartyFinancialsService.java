@@ -1,7 +1,10 @@
 package com.tprm.spi.service;
 
+import java.util.List;
+
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.stereotype.Service;
 
 import com.tprm.spi.dto.ThirdPartyFinancialsDTO;
@@ -14,6 +17,9 @@ public class ThirdPartyFinancialsService {
     private ThirdPartyFinancialsRepository thirdPartyFinancialsRepository;
 
     @Autowired
+    private MongoTemplate mongoTemplate;
+
+    @Autowired
     private ModelMapper modelMapper;
 
     public ThirdPartyFinancialsDTO saveFinancials(ThirdPartyFinancialsDTO thirdPartyFinancialsDTO) {
@@ -23,6 +29,11 @@ public class ThirdPartyFinancialsService {
 
     public void deleteFinancialsbyId(String id) {
         thirdPartyFinancialsRepository.deleteById(id);
+    }
+
+    public List<String> getThirdPartyFinancialIdsForRevenueRange(Double fromRange, Double toRange) {
+        return thirdPartyFinancialsRepository.getThirdPartyFinancialIdsForRevenueRange(fromRange, toRange,
+                mongoTemplate);
     }
 
     private ThirdPartyFinancials convertToThirdPartyFinancialsEntity(ThirdPartyFinancialsDTO thirdPartyFinancialsDTO) {

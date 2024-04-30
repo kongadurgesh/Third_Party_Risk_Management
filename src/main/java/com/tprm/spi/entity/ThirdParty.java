@@ -1,6 +1,7 @@
 package com.tprm.spi.entity;
 
 import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import jakarta.validation.constraints.NotEmpty;
@@ -44,5 +45,8 @@ public class ThirdParty {
 
     @NotEmpty(message = "Legal Structure is required")
     private String legalStructure;
+
+    @DBRef
+    private ThirdPartyFinancials financials;
 
 }

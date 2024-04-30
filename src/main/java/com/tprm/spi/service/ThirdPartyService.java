@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -13,6 +14,7 @@ import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.stereotype.Service;
 
 import com.tprm.spi.dto.ThirdPartyDTO;
+import com.tprm.spi.dto.ThirdPartyFinancialsDTO;
 import com.tprm.spi.entity.ThirdParty;
 import com.tprm.spi.exception.ThirdPartyNotFoundException;
 import com.tprm.spi.exception.ThirdpartyNameConflictException;
@@ -24,7 +26,13 @@ public class ThirdPartyService {
     private ThirdPartyRepository thirdPartyRepository;
 
     @Autowired
+    private ThirdPartyFinancialsService thirdPartyFinancialsService;
+
+    @Autowired
     private MongoTemplate mongoTemplate;
+
+    @Autowired
+    private ModelMapper modelMapper;
 
     public List<ThirdPartyDTO> getAllThirdParties() {
         List<ThirdParty> thirdParties = thirdPartyRepository.findAll();
@@ -44,6 +52,9 @@ public class ThirdPartyService {
             throw new ThirdpartyNameConflictException("Third Party already exists in the DataBase...");
         }
         ThirdParty thirdParty = convertToThirdPartyEntity(thirdPartyDTO);
+        ThirdPartyFinancialsDTO thirdPartyFinancialsDTO = thirdPartyFinancialsService
+                .saveFinancials(thirdPartyDTO.getFinancials());
+        thirdParty.getFinancials().setFinancialID(thirdPartyFinancialsDTO.getFinancialID());
         return convertToThirdPartyDTO(thirdPartyRepository.save(thirdParty));
     }
 
@@ -71,15 +82,11 @@ public class ThirdPartyService {
     }
 
     private ThirdParty convertToThirdPartyEntity(ThirdPartyDTO thirdPartyDTO) {
-        ThirdParty thirdParty = new ThirdParty();
-        BeanUtils.copyProperties(thirdPartyDTO, thirdParty);
-        return thirdParty;
+        return modelMapper.map(thirdPartyDTO, ThirdParty.class);
     }
 
     private ThirdPartyDTO convertToThirdPartyDTO(ThirdParty thirdParty) {
-        ThirdPartyDTO thirdPartyDTO = new ThirdPartyDTO();
-        BeanUtils.copyProperties(thirdParty, thirdPartyDTO);
-        return thirdPartyDTO;
+        return modelMapper.map(thirdParty, ThirdPartyDTO.class);
     }
 
     public List<ThirdPartyDTO> getThirdPartiesByFilter(ThirdPartyDTO thirdPartyDTO) {

@@ -206,4 +206,9 @@ public class ThirdPartyService {
                                 .contains(thirdPartyRelationshipDto.getRelationshipId())))
                 .collect(Collectors.toList());
     }
+
+    public String deleteAllThirdPartyRelationships(String thirdPartyId) {
+        // TODO:
+        return null;
+    }
 }

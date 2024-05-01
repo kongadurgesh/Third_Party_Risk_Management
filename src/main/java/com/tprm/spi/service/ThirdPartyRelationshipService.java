@@ -26,6 +26,10 @@ public class ThirdPartyRelationshipService {
 
     }
 
+    public void deleteRelationshipbyId(String thirdPartyRelationshipId) {
+        thirdPartyRelationshipRepository.deleteById(thirdPartyRelationshipId);
+    }
+
     private ThirdPartyRelationshipDTO convertToThirdPartyRelationshipDTO(
             ThirdPartyRelationship thirdPartyRelationship) {
         return modelMapper.map(thirdPartyRelationship, ThirdPartyRelationshipDTO.class);

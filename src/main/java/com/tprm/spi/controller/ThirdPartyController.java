@@ -133,4 +133,12 @@ public class ThirdPartyController {
         return ResponseEntity.status(HttpStatus.OK)
                 .body("Third Party Relationship Deleted Successfully");
     }
+
+    @PostMapping("/relationships/filters")
+    public ResponseEntity<List<ThirdPartyDTO>> getThirdPartiesByRelationshipFilter(
+            @RequestBody ThirdPartyRelationshipDTO thirdPartyRelationshipDTO) {
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(thirdPartyService.getThirdPartiesByRelationshipFilter(thirdPartyRelationshipDTO));
+    }
+
 }

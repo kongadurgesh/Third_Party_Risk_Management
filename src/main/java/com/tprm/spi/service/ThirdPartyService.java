@@ -192,4 +192,18 @@ public class ThirdPartyService {
 
         return convertToThirdPartyDTO(thirdPartyRepository.save(convertToThirdPartyEntity(thirdPartyDTO)));
     }
+
+    public List<ThirdPartyDTO> getThirdPartiesByRelationshipFilter(
+            ThirdPartyRelationshipDTO thirdPartyRelationshipDTO) {
+        List<String> filteredThirdPartyRelationshipIds = thirdPartyRelationshipService
+                .getThirdPartyIdsByRelationshipFilter(thirdPartyRelationshipDTO, mongoTemplate);
+        List<ThirdPartyDTO> thirdPartyDTOs = getAllThirdParties();
+
+        return thirdPartyDTOs.stream()
+                .filter(thirdPartyDTO -> thirdPartyDTO.getThirdPartyRelationships() != null)
+                .filter(thirdPartyDTO -> thirdPartyDTO.getThirdPartyRelationships().stream()
+                        .anyMatch(thirdPartyRelationshipDto -> filteredThirdPartyRelationshipIds
+                                .contains(thirdPartyRelationshipDto.getRelationshipId())))
+                .collect(Collectors.toList());
+    }
 }

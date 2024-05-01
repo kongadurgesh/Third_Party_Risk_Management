@@ -1,5 +1,6 @@
 package com.tprm.spi.service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -16,6 +17,7 @@ import org.springframework.stereotype.Service;
 
 import com.tprm.spi.dto.ThirdPartyDTO;
 import com.tprm.spi.dto.ThirdPartyFinancialsDTO;
+import com.tprm.spi.dto.ThirdPartyRelationshipDTO;
 import com.tprm.spi.entity.ThirdParty;
 import com.tprm.spi.exception.ThirdPartyNotFoundException;
 import com.tprm.spi.exception.ThirdpartyNameConflictException;
@@ -27,7 +29,10 @@ public class ThirdPartyService {
     private ThirdPartyRepository thirdPartyRepository;
 
     @Autowired
-    private ThirdPartyFinancialsService thirdPartyFinancialsService;
+    private ThirdPartyFinancialsService thirdPartyFinancialService;
+
+    @Autowired
+    private ThirdPartyRelationshipService thirdPartyRelationshipService;
 
     @Autowired
     private MongoTemplate mongoTemplate;
@@ -56,14 +61,14 @@ public class ThirdPartyService {
         }
         ThirdParty thirdParty = convertToThirdPartyEntity(thirdPartyDTO);
         ThirdPartyDTO createdThirdPartyDTO = new ThirdPartyDTO();
-        ThirdPartyFinancialsDTO thirdPartyFinancialsDTO = thirdPartyFinancialsService
+        ThirdPartyFinancialsDTO thirdPartyFinancialsDTO = thirdPartyFinancialService
                 .saveFinancials(thirdPartyDTO.getFinancials());
         try {
             thirdParty.getFinancials().setFinancialID(thirdPartyFinancialsDTO.getFinancialID());
             createdThirdPartyDTO = convertToThirdPartyDTO(thirdPartyRepository.save(thirdParty));
         } catch (Exception e) {
             LOGGER.info("Reverting the Saved Financials Information as Third Party creation Failed...");
-            thirdPartyFinancialsService.deleteFinancialsbyId(thirdPartyFinancialsDTO.getFinancialID());
+            thirdPartyFinancialService.deleteFinancialsbyId(thirdPartyFinancialsDTO.getFinancialID());
         }
 
         return createdThirdPartyDTO;
@@ -74,7 +79,7 @@ public class ThirdPartyService {
                 .map(existingThirdParty -> {
                     modelMapper.map(thirdPartyDTOToUpdate, existingThirdParty);
                     existingThirdParty.setId(id);
-                    thirdPartyFinancialsService.saveFinancials(
+                    thirdPartyFinancialService.saveFinancials(
                             modelMapper.map(existingThirdParty.getFinancials(), ThirdPartyFinancialsDTO.class));
                     return convertToThirdPartyDTO(thirdPartyRepository.save(existingThirdParty));
                 }).orElse(null));
@@ -85,7 +90,7 @@ public class ThirdPartyService {
             Optional<ThirdPartyDTO> thirdPartyDTO = getThirdPartyById(id);
             if (thirdPartyDTO.isPresent()) {
                 if (thirdPartyDTO.get().getFinancials() != null)
-                    thirdPartyFinancialsService
+                    thirdPartyFinancialService
                             .deleteFinancialsbyId(thirdPartyDTO.get().getFinancials().getFinancialID());
                 thirdPartyRepository.deleteById(id);
                 return "Third Party Deleted Successfully";
@@ -128,7 +133,7 @@ public class ThirdPartyService {
 
     public List<ThirdPartyDTO> getThirdPartiesByRevenueRange(Double fromRange, Double toRange) {
         List<ThirdPartyDTO> thirdPartyDTOs = getAllThirdParties();
-        List<String> filteredThirdPartyIds = thirdPartyFinancialsService.getThirdPartyFinancialIdsForRevenueRange(
+        List<String> filteredThirdPartyIds = thirdPartyFinancialService.getThirdPartyFinancialIdsForRevenueRange(
                 fromRange,
                 toRange);
         return thirdPartyDTOs.stream()
@@ -139,7 +144,7 @@ public class ThirdPartyService {
 
     public List<ThirdPartyDTO> getThirdPartiesByProfitMargins(Double profitMargins) {
         List<ThirdPartyDTO> thirdPartyDTOs = getAllThirdParties();
-        List<String> filteredThirdPartyIds = thirdPartyFinancialsService
+        List<String> filteredThirdPartyIds = thirdPartyFinancialService
                 .getThirdPartyFinancialIdsByProfitMargins(profitMargins);
         return thirdPartyDTOs.stream()
                 .filter(thirdPartyDTO -> thirdPartyDTO.getFinancials() != null)
@@ -149,11 +154,27 @@ public class ThirdPartyService {
 
     public List<ThirdPartyDTO> getThirdPartiesByFinancialFilters(ThirdPartyFinancialsDTO thirdPartyFinancialsDTO) {
         List<ThirdPartyDTO> thirdPartyDTOs = getAllThirdParties();
-        List<String> filteredThirdPartyIds = thirdPartyFinancialsService
+        List<String> filteredThirdPartyIds = thirdPartyFinancialService
                 .getThirdPartyFinancialIdsByFilters(thirdPartyFinancialsDTO);
 
         return thirdPartyDTOs.stream()
                 .filter(thirdPartyDTO -> filteredThirdPartyIds.contains(thirdPartyDTO.getFinancials().getFinancialID()))
                 .collect(Collectors.toList());
+    }
+
+    public ThirdPartyDTO addRelationshipToThirdParty(String thirdPartyId,
+            ThirdPartyRelationshipDTO thirdPartyRelationshipDTO) {
+        String thirdPartyRelationshipId = thirdPartyRelationshipService.addRelationshipToThirdParty(thirdPartyId,
+                thirdPartyRelationshipDTO);
+
+        ThirdPartyDTO thirdPartyDTO = getThirdPartyById(thirdPartyId).get();
+        thirdPartyRelationshipDTO.setRelationshipId(thirdPartyRelationshipId);
+        if (thirdPartyDTO.getThirdPartyRelationships() == null) {
+            List<ThirdPartyRelationshipDTO> thirdPartyRelationshipDTOs = new ArrayList<>();
+            thirdPartyRelationshipDTOs.add(thirdPartyRelationshipDTO);
+            thirdPartyDTO.setThirdPartyRelationships(thirdPartyRelationshipDTOs);
+        } else
+            thirdPartyDTO.getThirdPartyRelationships().add(thirdPartyRelationshipDTO);
+        return convertToThirdPartyDTO(thirdPartyRepository.save(convertToThirdPartyEntity(thirdPartyDTO)));
     }
 }

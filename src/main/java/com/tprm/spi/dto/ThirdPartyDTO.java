@@ -1,5 +1,7 @@
 package com.tprm.spi.dto;
 
+import java.util.List;
+
 import lombok.Data;
 
 @Data
@@ -14,4 +16,5 @@ public class ThirdPartyDTO {
     private String primaryContactEmail;
     private String legalStructure;
     private ThirdPartyFinancialsDTO financials;
+    private List<ThirdPartyRelationshipDTO> thirdPartyRelationships;
 }

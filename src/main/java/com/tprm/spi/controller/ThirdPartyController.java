@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.tprm.spi.dto.ThirdPartyDTO;
 import com.tprm.spi.dto.ThirdPartyFinancialsDTO;
+import com.tprm.spi.dto.ThirdPartyRelationshipDTO;
 import com.tprm.spi.exception.ThirdPartyNotFoundException;
 import com.tprm.spi.exception.ThirdpartyNameConflictException;
 import com.tprm.spi.service.ThirdPartyService;
@@ -109,5 +110,13 @@ public class ThirdPartyController {
             @RequestBody ThirdPartyFinancialsDTO thirdPartyFinancialsDTO) {
         return ResponseEntity.status(HttpStatus.OK)
                 .body(thirdPartyService.getThirdPartiesByFinancialFilters(thirdPartyFinancialsDTO));
+    }
+
+    @PostMapping("/{thirdPartyId}/relationships")
+    public ResponseEntity<ThirdPartyDTO> addRelationshipToThirdParty(
+            @PathVariable(name = "thirdPartyId") String thirdPartyId,
+            @RequestBody ThirdPartyRelationshipDTO thirdPartyRelationshipDTO) {
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(thirdPartyService.addRelationshipToThirdParty(thirdPartyId, thirdPartyRelationshipDTO));
     }
 }

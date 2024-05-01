@@ -1,5 +1,7 @@
 package com.tprm.spi.entity;
 
+import java.util.List;
+
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
@@ -48,5 +50,8 @@ public class ThirdParty {
 
     @DBRef
     private ThirdPartyFinancials financials;
+
+    @DBRef
+    private List<ThirdPartyRelationship> thirdPartyRelationships;
 
 }

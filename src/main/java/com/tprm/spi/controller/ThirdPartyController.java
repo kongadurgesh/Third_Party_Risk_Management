@@ -21,6 +21,7 @@ import com.tprm.spi.dto.ThirdPartyDTO;
 import com.tprm.spi.dto.ThirdPartyFinancialsDTO;
 import com.tprm.spi.dto.ThirdPartyRelationshipDTO;
 import com.tprm.spi.exception.ThirdPartyNotFoundException;
+import com.tprm.spi.exception.ThirdPartyRelationshipNotFoundException;
 import com.tprm.spi.exception.ThirdpartyNameConflictException;
 import com.tprm.spi.service.ThirdPartyService;
 
@@ -118,5 +119,18 @@ public class ThirdPartyController {
             @RequestBody ThirdPartyRelationshipDTO thirdPartyRelationshipDTO) {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(thirdPartyService.addRelationshipToThirdParty(thirdPartyId, thirdPartyRelationshipDTO));
+    }
+
+    @DeleteMapping("/{thirdPartyId}/relationships/{relationshipId}")
+    public ResponseEntity<String> deleteThirdPartyRelationshipOfThirdPartyById(
+            @PathVariable(name = "thirdPartyId") String thirdPartyId,
+            @PathVariable(name = "relationshipId") String relationshipId) {
+        try {
+            thirdPartyService.deleteThirdPartyRelationshipOfThirdPartyById(thirdPartyId, relationshipId);
+        } catch (ThirdPartyRelationshipNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        }
+        return ResponseEntity.status(HttpStatus.OK)
+                .body("Third Party Relationship Deleted Successfully");
     }
 }

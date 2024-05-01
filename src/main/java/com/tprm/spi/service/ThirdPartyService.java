@@ -20,6 +20,7 @@ import com.tprm.spi.dto.ThirdPartyFinancialsDTO;
 import com.tprm.spi.dto.ThirdPartyRelationshipDTO;
 import com.tprm.spi.entity.ThirdParty;
 import com.tprm.spi.exception.ThirdPartyNotFoundException;
+import com.tprm.spi.exception.ThirdPartyRelationshipNotFoundException;
 import com.tprm.spi.exception.ThirdpartyNameConflictException;
 import com.tprm.spi.repository.ThirdPartyRepository;
 
@@ -175,6 +176,20 @@ public class ThirdPartyService {
             thirdPartyDTO.setThirdPartyRelationships(thirdPartyRelationshipDTOs);
         } else
             thirdPartyDTO.getThirdPartyRelationships().add(thirdPartyRelationshipDTO);
+        return convertToThirdPartyDTO(thirdPartyRepository.save(convertToThirdPartyEntity(thirdPartyDTO)));
+    }
+
+    public ThirdPartyDTO deleteThirdPartyRelationshipOfThirdPartyById(String thirdPartyId,
+            String thirdPartyRelationshipId) throws ThirdPartyRelationshipNotFoundException {
+        ThirdPartyDTO thirdPartyDTO = getThirdPartyById(thirdPartyId).get();
+        if (thirdPartyDTO.getThirdPartyRelationships().size() == 0)
+            throw new ThirdPartyRelationshipNotFoundException(
+                    "Third Party Relationships do not exist to this Third Party...");
+        thirdPartyRelationshipService.deleteRelationshipbyId(thirdPartyRelationshipId);
+
+        thirdPartyDTO.getThirdPartyRelationships().removeIf(thirdPartyRelationshipDTO -> thirdPartyRelationshipDTO
+                .getRelationshipId().equals(thirdPartyRelationshipId));
+
         return convertToThirdPartyDTO(thirdPartyRepository.save(convertToThirdPartyEntity(thirdPartyDTO)));
     }
 }

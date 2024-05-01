@@ -14,14 +14,14 @@ import lombok.NoArgsConstructor;
 public class ThirdPartyFinancials {
     @Id
     private String financialID;
-    private double revenue;
-    private double profitMargins;
-    private double netIncome;
-    private double grossMargin;
-    private double operatingExpenses;
-    private double ebitda;
-    private double currentRatio;
-    private double quickRatio;
-    private double debtToEquityRatio;
-    private double cashFlow;
+    private Double revenue;
+    private Double profitMargins;
+    private Double netIncome;
+    private Double grossMargin;
+    private Double operatingExpenses;
+    private Double ebitda;
+    private Double currentRatio;
+    private Double quickRatio;
+    private Double debtToEquityRatio;
+    private Double cashFlow;
 }

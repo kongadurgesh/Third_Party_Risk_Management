@@ -96,4 +96,18 @@ public class ThirdPartyController {
         return ResponseEntity.status(HttpStatus.OK)
                 .body(thirdPartyService.getThirdPartiesByRevenueRange(fromRange, toRange));
     }
+
+    @GetMapping("/financials/profits")
+    public ResponseEntity<List<ThirdPartyDTO>> getThirdPartiesByProfitMargins(
+            @RequestParam(required = false) Double profitMargins) {
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(thirdPartyService.getThirdPartiesByProfitMargins(profitMargins));
+    }
+
+    @PostMapping("/financials/filters")
+    public ResponseEntity<List<ThirdPartyDTO>> getThirdPartiesByProfitMargins(
+            @RequestBody ThirdPartyFinancialsDTO thirdPartyFinancialsDTO) {
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(thirdPartyService.getThirdPartiesByFinancialFilters(thirdPartyFinancialsDTO));
+    }
 }

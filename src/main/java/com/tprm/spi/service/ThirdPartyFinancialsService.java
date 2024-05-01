@@ -1,7 +1,6 @@
 package com.tprm.spi.service;
 
 import java.util.List;
-
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -36,6 +35,16 @@ public class ThirdPartyFinancialsService {
                 mongoTemplate);
     }
 
+    public List<String> getThirdPartyFinancialIdsByProfitMargins(Double profitMargins) {
+        return thirdPartyFinancialsRepository.getThirdPartyFinancialIdsByProfitMargins(profitMargins, mongoTemplate);
+    }
+
+    public List<String> getThirdPartyFinancialIdsByFilters(
+            ThirdPartyFinancialsDTO thirdPartyFinancialsDTO) {
+        return thirdPartyFinancialsRepository.getThirdPartyFinancialIdsByFilters(
+                convertToThirdPartyFinancialsEntity(thirdPartyFinancialsDTO), mongoTemplate);
+    }
+
     private ThirdPartyFinancials convertToThirdPartyFinancialsEntity(ThirdPartyFinancialsDTO thirdPartyFinancialsDTO) {
         return modelMapper.map(thirdPartyFinancialsDTO, ThirdPartyFinancials.class);
     }
@@ -43,4 +52,5 @@ public class ThirdPartyFinancialsService {
     private ThirdPartyFinancialsDTO convertToThirdPartyFinancialsDTO(ThirdPartyFinancials thirdPartyFinancials) {
         return modelMapper.map(thirdPartyFinancials, ThirdPartyFinancialsDTO.class);
     }
+
 }

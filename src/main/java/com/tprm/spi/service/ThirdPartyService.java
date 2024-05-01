@@ -5,6 +5,8 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.modelmapper.ModelMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -33,6 +35,8 @@ public class ThirdPartyService {
     @Autowired
     private ModelMapper modelMapper;
 
+    private final static Logger LOGGER = LoggerFactory.getLogger(ThirdPartyService.class);
+
     public List<ThirdPartyDTO> getAllThirdParties() {
         List<ThirdParty> thirdParties = thirdPartyRepository.findAll();
 
@@ -51,10 +55,18 @@ public class ThirdPartyService {
             throw new ThirdpartyNameConflictException("Third Party already exists in the DataBase...");
         }
         ThirdParty thirdParty = convertToThirdPartyEntity(thirdPartyDTO);
+        ThirdPartyDTO createdThirdPartyDTO = new ThirdPartyDTO();
         ThirdPartyFinancialsDTO thirdPartyFinancialsDTO = thirdPartyFinancialsService
                 .saveFinancials(thirdPartyDTO.getFinancials());
-        thirdParty.getFinancials().setFinancialID(thirdPartyFinancialsDTO.getFinancialID());
-        return convertToThirdPartyDTO(thirdPartyRepository.save(thirdParty));
+        try {
+            thirdParty.getFinancials().setFinancialID(thirdPartyFinancialsDTO.getFinancialID());
+            createdThirdPartyDTO = convertToThirdPartyDTO(thirdPartyRepository.save(thirdParty));
+        } catch (Exception e) {
+            LOGGER.info("Reverting the Saved Financials Information as Third Party creation Failed...");
+            thirdPartyFinancialsService.deleteFinancialsbyId(thirdPartyFinancialsDTO.getFinancialID());
+        }
+
+        return createdThirdPartyDTO;
     }
 
     public Optional<ThirdPartyDTO> updateThirdParty(String id, ThirdPartyDTO thirdPartyDTOToUpdate) {
@@ -72,7 +84,9 @@ public class ThirdPartyService {
         try {
             Optional<ThirdPartyDTO> thirdPartyDTO = getThirdPartyById(id);
             if (thirdPartyDTO.isPresent()) {
-                thirdPartyFinancialsService.deleteFinancialsbyId(thirdPartyDTO.get().getFinancials().getFinancialID());
+                if (thirdPartyDTO.get().getFinancials() != null)
+                    thirdPartyFinancialsService
+                            .deleteFinancialsbyId(thirdPartyDTO.get().getFinancials().getFinancialID());
                 thirdPartyRepository.deleteById(id);
                 return "Third Party Deleted Successfully";
             } else {
@@ -119,6 +133,26 @@ public class ThirdPartyService {
                 toRange);
         return thirdPartyDTOs.stream()
                 .filter(thirdPartyDTO -> thirdPartyDTO.getFinancials() != null)
+                .filter(thirdPartyDTO -> filteredThirdPartyIds.contains(thirdPartyDTO.getFinancials().getFinancialID()))
+                .collect(Collectors.toList());
+    }
+
+    public List<ThirdPartyDTO> getThirdPartiesByProfitMargins(Double profitMargins) {
+        List<ThirdPartyDTO> thirdPartyDTOs = getAllThirdParties();
+        List<String> filteredThirdPartyIds = thirdPartyFinancialsService
+                .getThirdPartyFinancialIdsByProfitMargins(profitMargins);
+        return thirdPartyDTOs.stream()
+                .filter(thirdPartyDTO -> thirdPartyDTO.getFinancials() != null)
+                .filter(thirdPartyDTO -> filteredThirdPartyIds.contains(thirdPartyDTO.getFinancials().getFinancialID()))
+                .collect(Collectors.toList());
+    }
+
+    public List<ThirdPartyDTO> getThirdPartiesByFinancialFilters(ThirdPartyFinancialsDTO thirdPartyFinancialsDTO) {
+        List<ThirdPartyDTO> thirdPartyDTOs = getAllThirdParties();
+        List<String> filteredThirdPartyIds = thirdPartyFinancialsService
+                .getThirdPartyFinancialIdsByFilters(thirdPartyFinancialsDTO);
+
+        return thirdPartyDTOs.stream()
                 .filter(thirdPartyDTO -> filteredThirdPartyIds.contains(thirdPartyDTO.getFinancials().getFinancialID()))
                 .collect(Collectors.toList());
     }

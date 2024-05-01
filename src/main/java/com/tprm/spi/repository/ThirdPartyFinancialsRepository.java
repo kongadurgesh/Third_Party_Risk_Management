@@ -29,4 +29,52 @@ public interface ThirdPartyFinancialsRepository extends MongoRepository<ThirdPar
                 .collect(Collectors.toList());
     }
 
+    default List<String> getThirdPartyFinancialIdsByProfitMargins(Double profitMargins, MongoTemplate mongoTemplate) {
+        Query query = new Query();
+        if (profitMargins != null)
+            query.addCriteria(Criteria.where("profitMargins").gte(profitMargins));
+        List<ThirdPartyFinancials> thirdPartyFinancials = mongoTemplate.find(query, ThirdPartyFinancials.class);
+        return thirdPartyFinancials.stream()
+                .map(ThirdPartyFinancials::getFinancialID)
+                .collect(Collectors.toList());
+    }
+
+    default List<String> getThirdPartyFinancialIdsByFilters(ThirdPartyFinancials thirdPartyFinancials,
+            MongoTemplate mongoTemplate) {
+        Query query = new Query();
+        if (thirdPartyFinancials.getCashFlow() != 0) {
+            query.addCriteria(Criteria.where("cashFlow").is(thirdPartyFinancials.getCashFlow()));
+        }
+        if (thirdPartyFinancials.getCurrentRatio() != 0) {
+            query.addCriteria(Criteria.where("currentRatio").is(thirdPartyFinancials.getCurrentRatio()));
+        }
+        if (thirdPartyFinancials.getDebtToEquityRatio() != 0) {
+            query.addCriteria(Criteria.where("debtToEquityRatio").is(thirdPartyFinancials.getDebtToEquityRatio()));
+        }
+        if (thirdPartyFinancials.getEbitda() != 0) {
+            query.addCriteria(Criteria.where("ebitda").is(thirdPartyFinancials.getEbitda()));
+        }
+        if (thirdPartyFinancials.getGrossMargin() != 0) {
+            query.addCriteria(Criteria.where("grossMargin").is(thirdPartyFinancials.getGrossMargin()));
+        }
+        if (thirdPartyFinancials.getNetIncome() != 0) {
+            query.addCriteria(Criteria.where("netIncome").is(thirdPartyFinancials.getNetIncome()));
+        }
+        if (thirdPartyFinancials.getOperatingExpenses() != 0) {
+            query.addCriteria(Criteria.where("operatingExpenses").is(thirdPartyFinancials.getOperatingExpenses()));
+        }
+        if (thirdPartyFinancials.getProfitMargins() != 0) {
+            query.addCriteria(Criteria.where("profitMargins").is(thirdPartyFinancials.getProfitMargins()));
+        }
+        if (thirdPartyFinancials.getQuickRatio() != 0) {
+            query.addCriteria(Criteria.where("quickRatio").is(thirdPartyFinancials.getQuickRatio()));
+        }
+        if (thirdPartyFinancials.getRevenue() != 0) {
+            query.addCriteria(Criteria.where("revenue").is(thirdPartyFinancials.getRevenue()));
+        }
+        List<ThirdPartyFinancials> filteredThirdPartyFinancials = mongoTemplate.find(query, ThirdPartyFinancials.class);
+        return filteredThirdPartyFinancials.stream()
+                .map(ThirdPartyFinancials::getFinancialID)
+                .collect(Collectors.toList());
+    }
 }

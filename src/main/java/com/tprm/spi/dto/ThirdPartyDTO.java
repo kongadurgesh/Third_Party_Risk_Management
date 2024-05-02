@@ -16,5 +16,5 @@ public class ThirdPartyDTO {
     private String primaryContactEmail;
     private String legalStructure;
     private ThirdPartyFinancialsDTO financials;
-    private List<ThirdPartyRelationshipDTO> thirdPartyRelationships;
+    private List<ThirdPartyRelationshipDTO> relationships;
 }

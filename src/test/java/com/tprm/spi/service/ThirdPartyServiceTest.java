@@ -21,6 +21,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.boot.test.autoconfigure.data.mongo.DataMongoTest;
 import com.tprm.spi.dto.ThirdPartyDTO;
 import com.tprm.spi.entity.ThirdParty;
+import com.tprm.spi.exception.ThirdPartyCreationFailureException;
 import com.tprm.spi.exception.ThirdPartyNotFoundException;
 import com.tprm.spi.exception.ThirdpartyNameConflictException;
 import com.tprm.spi.repository.ThirdPartyRepository;
@@ -40,7 +41,8 @@ public class ThirdPartyServiceTest {
     }
 
     @Test
-    public void testCreateThirdPartySuccess() throws ThirdpartyNameConflictException {
+    public void testCreateThirdPartySuccess()
+            throws ThirdpartyNameConflictException, ThirdPartyCreationFailureException {
         ThirdPartyDTO thirdPartyDTO = new ThirdPartyDTO();
 
         thirdPartyDTO.setName("Test Third Party");

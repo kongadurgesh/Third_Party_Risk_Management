@@ -20,6 +20,7 @@ import com.tprm.spi.dto.ThirdPartyDTO;
 import com.tprm.spi.dto.ThirdPartyFinancialsDTO;
 import com.tprm.spi.dto.ThirdPartyRelationshipDTO;
 import com.tprm.spi.entity.ThirdParty;
+import com.tprm.spi.exception.ThirdPartyCreationFailureException;
 import com.tprm.spi.exception.ThirdPartyNotFoundException;
 import com.tprm.spi.exception.ThirdPartyRelationshipNotFoundException;
 import com.tprm.spi.exception.ThirdpartyNameConflictException;
@@ -58,22 +59,27 @@ public class ThirdPartyService {
         return thirdparty.map(this::convertToThirdPartyDTO);
     }
 
-    public ThirdPartyDTO createThirdParty(ThirdPartyDTO thirdPartyDTO) throws ThirdpartyNameConflictException {
+    public ThirdPartyDTO createThirdParty(ThirdPartyDTO thirdPartyDTO)
+            throws ThirdpartyNameConflictException, ThirdPartyCreationFailureException {
         if (thirdPartyRepository.findByName(thirdPartyDTO.getName()).isPresent()) {
             throw new ThirdpartyNameConflictException("Third Party already exists in the DataBase...");
         }
-        ThirdParty thirdParty = convertToThirdPartyEntity(thirdPartyDTO);
         ThirdPartyDTO createdThirdPartyDTO = new ThirdPartyDTO();
         ThirdPartyFinancialsDTO thirdPartyFinancialsDTO = thirdPartyFinancialService
                 .saveFinancials(thirdPartyDTO.getFinancials());
+        List<ThirdPartyRelationshipDTO> thirdPartyRelationshipDTOs = thirdPartyRelationshipService
+                .addAllRelationships(thirdPartyDTO.getRelationships());
+        thirdPartyDTO.setRelationships(thirdPartyRelationshipDTOs);
+        ThirdParty thirdParty = convertToThirdPartyEntity(thirdPartyDTO);
         try {
             thirdParty.getFinancials().setFinancialID(thirdPartyFinancialsDTO.getFinancialID());
             createdThirdPartyDTO = convertToThirdPartyDTO(thirdPartyRepository.save(thirdParty));
         } catch (Exception e) {
+            LOGGER.error(e.getMessage());
             LOGGER.info("Reverting the Saved Financials Information as Third Party creation Failed...");
             thirdPartyFinancialService.deleteFinancialsbyId(thirdPartyFinancialsDTO.getFinancialID());
+            throw new ThirdPartyCreationFailureException(e.getMessage());
         }
-
         return createdThirdPartyDTO;
     }
 
@@ -167,29 +173,29 @@ public class ThirdPartyService {
 
     public ThirdPartyDTO addRelationshipToThirdParty(String thirdPartyId,
             ThirdPartyRelationshipDTO thirdPartyRelationshipDTO) {
-        String thirdPartyRelationshipId = thirdPartyRelationshipService.addRelationshipToThirdParty(thirdPartyId,
+        String thirdPartyRelationshipId = thirdPartyRelationshipService.addRelationshipToThirdParty(
                 thirdPartyRelationshipDTO);
 
         ThirdPartyDTO thirdPartyDTO = getThirdPartyById(thirdPartyId).get();
         thirdPartyRelationshipDTO.setRelationshipId(thirdPartyRelationshipId);
-        if (thirdPartyDTO.getThirdPartyRelationships() == null) {
+        if (thirdPartyDTO.getRelationships() == null) {
             List<ThirdPartyRelationshipDTO> thirdPartyRelationshipDTOs = new ArrayList<>();
             thirdPartyRelationshipDTOs.add(thirdPartyRelationshipDTO);
-            thirdPartyDTO.setThirdPartyRelationships(thirdPartyRelationshipDTOs);
+            thirdPartyDTO.setRelationships(thirdPartyRelationshipDTOs);
         } else
-            thirdPartyDTO.getThirdPartyRelationships().add(thirdPartyRelationshipDTO);
+            thirdPartyDTO.getRelationships().add(thirdPartyRelationshipDTO);
         return convertToThirdPartyDTO(thirdPartyRepository.save(convertToThirdPartyEntity(thirdPartyDTO)));
     }
 
     public ThirdPartyDTO deleteThirdPartyRelationshipOfThirdPartyById(String thirdPartyId,
             String thirdPartyRelationshipId) throws ThirdPartyRelationshipNotFoundException {
         ThirdPartyDTO thirdPartyDTO = getThirdPartyById(thirdPartyId).get();
-        if (thirdPartyDTO.getThirdPartyRelationships().size() == 0)
+        if (thirdPartyDTO.getRelationships().size() == 0)
             throw new ThirdPartyRelationshipNotFoundException(
                     ThirdPartyConstants.NO_THIRD_PARTY_RELATIONSHIPS);
         thirdPartyRelationshipService.deleteRelationshipbyId(thirdPartyRelationshipId);
 
-        thirdPartyDTO.getThirdPartyRelationships().removeIf(thirdPartyRelationshipDTO -> thirdPartyRelationshipDTO
+        thirdPartyDTO.getRelationships().removeIf(thirdPartyRelationshipDTO -> thirdPartyRelationshipDTO
                 .getRelationshipId().equals(thirdPartyRelationshipId));
 
         return convertToThirdPartyDTO(thirdPartyRepository.save(convertToThirdPartyEntity(thirdPartyDTO)));
@@ -202,21 +208,21 @@ public class ThirdPartyService {
         List<ThirdPartyDTO> thirdPartyDTOs = getAllThirdParties();
 
         return thirdPartyDTOs.stream()
-                .filter(thirdPartyDTO -> thirdPartyDTO.getThirdPartyRelationships() != null)
-                .filter(thirdPartyDTO -> thirdPartyDTO.getThirdPartyRelationships().stream()
+                .filter(thirdPartyDTO -> thirdPartyDTO.getRelationships() != null)
+                .filter(thirdPartyDTO -> thirdPartyDTO.getRelationships().stream()
                         .anyMatch(thirdPartyRelationshipDto -> filteredThirdPartyRelationshipIds
                                 .contains(thirdPartyRelationshipDto.getRelationshipId())))
                 .collect(Collectors.toList());
     }
 
     public String deleteAllThirdPartyRelationships(String thirdPartyId) throws ThirdPartyRelationshipNotFoundException {
-        if (getThirdPartyById(thirdPartyId).get().getThirdPartyRelationships().isEmpty()) {
+        if (getThirdPartyById(thirdPartyId).get().getRelationships().isEmpty()) {
             throw new ThirdPartyRelationshipNotFoundException(ThirdPartyConstants.NO_THIRD_PARTY_RELATIONSHIPS);
         }
         ThirdPartyDTO thirdPartyDTO = getThirdPartyById(thirdPartyId).get();
-        List<String> thirdPartyRelationhshipIds = thirdPartyDTO.getThirdPartyRelationships().stream()
+        List<String> thirdPartyRelationhshipIds = thirdPartyDTO.getRelationships().stream()
                 .map(ThirdPartyRelationshipDTO::getRelationshipId).collect(Collectors.toList());
-        thirdPartyDTO.setThirdPartyRelationships(new ArrayList<>());
+        thirdPartyDTO.setRelationships(new ArrayList<>());
         thirdPartyRelationshipService.deleteAllRelationships(thirdPartyRelationhshipIds);
         thirdPartyRepository.save(convertToThirdPartyEntity(thirdPartyDTO));
         return ThirdPartyConstants.ALL_RELATIONSHIPS_DELETED;

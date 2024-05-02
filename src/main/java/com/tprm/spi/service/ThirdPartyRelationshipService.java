@@ -48,4 +48,8 @@ public class ThirdPartyRelationshipService {
             ThirdPartyRelationshipDTO thirdPartyRelationshipDTO) {
         return modelMapper.map(thirdPartyRelationshipDTO, ThirdPartyRelationship.class);
     }
+
+    public void deleteAllRelationships(List<String> thirdPartyRelationhshipIds) {
+        thirdPartyRelationshipRepository.deleteAllById(thirdPartyRelationhshipIds);
+    }
 }

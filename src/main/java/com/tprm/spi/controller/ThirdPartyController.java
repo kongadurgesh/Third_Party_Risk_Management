@@ -21,6 +21,7 @@ import com.tprm.spi.constants.ThirdPartyConstants;
 import com.tprm.spi.dto.ThirdPartyDTO;
 import com.tprm.spi.dto.ThirdPartyFinancialsDTO;
 import com.tprm.spi.dto.ThirdPartyRelationshipDTO;
+import com.tprm.spi.exception.ThirdPartyCreationFailureException;
 import com.tprm.spi.exception.ThirdPartyNotFoundException;
 import com.tprm.spi.exception.ThirdPartyRelationshipNotFoundException;
 import com.tprm.spi.exception.ThirdpartyNameConflictException;
@@ -53,6 +54,8 @@ public class ThirdPartyController {
             return ResponseEntity.status(HttpStatus.CREATED).body(ThirdPartyConstants.THIRD_PARTY_CREATED_SUCCESSFULLY);
         } catch (ThirdpartyNameConflictException thirdpartyNameConflictException) {
             return ResponseEntity.status(HttpStatus.CONFLICT).body(thirdpartyNameConflictException.getMessage());
+        } catch (ThirdPartyCreationFailureException thirdPartyCreationFailureException) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(thirdPartyCreationFailureException.getMessage());
         }
 
     }

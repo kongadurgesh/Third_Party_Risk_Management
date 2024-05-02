@@ -1,6 +1,7 @@
 package com.tprm.spi.service;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,13 +21,20 @@ public class ThirdPartyRelationshipService {
     @Autowired
     private ModelMapper modelMapper;
 
-    public String addRelationshipToThirdParty(String thirdPartyId,
+    public String addRelationshipToThirdParty(
             ThirdPartyRelationshipDTO thirdPartyRelationshipDTO) {
         ThirdPartyRelationship savedThirdPartyRelationship = thirdPartyRelationshipRepository
                 .save(convertToThirdPartyRelationship(thirdPartyRelationshipDTO));
 
         return convertToThirdPartyRelationshipDTO(savedThirdPartyRelationship).getRelationshipId();
 
+    }
+
+    public List<ThirdPartyRelationshipDTO> addAllRelationships(
+            List<ThirdPartyRelationshipDTO> thirdPartyRelationshipDTOs) {
+        return thirdPartyRelationshipRepository.saveAll(thirdPartyRelationshipDTOs.stream()
+                .map(this::convertToThirdPartyRelationship).collect(Collectors.toList())).stream()
+                .map(this::convertToThirdPartyRelationshipDTO).collect(Collectors.toList());
     }
 
     public List<String> getThirdPartyIdsByRelationshipFilter(ThirdPartyRelationshipDTO thirdPartyRelationshipDTO,

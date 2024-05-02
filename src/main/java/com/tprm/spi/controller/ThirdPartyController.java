@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.tprm.spi.constants.ThirdPartyConstants;
 import com.tprm.spi.dto.ThirdPartyDTO;
 import com.tprm.spi.dto.ThirdPartyFinancialsDTO;
 import com.tprm.spi.dto.ThirdPartyRelationshipDTO;
@@ -49,7 +50,7 @@ public class ThirdPartyController {
     public ResponseEntity<String> createThirdParty(@RequestBody @Valid ThirdPartyDTO thirdPartyDTO) {
         try {
             thirdPartyService.createThirdParty(thirdPartyDTO);
-            return ResponseEntity.status(HttpStatus.CREATED).body("Third Party Created Successfully");
+            return ResponseEntity.status(HttpStatus.CREATED).body(ThirdPartyConstants.THIRD_PARTY_CREATED_SUCCESSFULLY);
         } catch (ThirdpartyNameConflictException thirdpartyNameConflictException) {
             return ResponseEntity.status(HttpStatus.CONFLICT).body(thirdpartyNameConflictException.getMessage());
         }
@@ -69,7 +70,8 @@ public class ThirdPartyController {
             String thirdPartyDeletionStatus = thirdPartyService.deleteThirdParty(id);
             return ResponseEntity.ok(thirdPartyDeletionStatus);
         } catch (ThirdPartyNotFoundException thirdPartyNotFoundException) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Third Party Does Not Exist in DataBase...");
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(ThirdPartyConstants.THIRD_PARTY_DOES_NOT_FOUND);
         }
     }
 
@@ -131,7 +133,7 @@ public class ThirdPartyController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         }
         return ResponseEntity.status(HttpStatus.OK)
-                .body("Third Party Relationship Deleted Successfully");
+                .body(ThirdPartyConstants.THIRD_PARTY_RELATIONSHIP_DELETED_SUCCESSFULLY);
     }
 
     @PostMapping("/relationships/filters")
@@ -139,6 +141,16 @@ public class ThirdPartyController {
             @RequestBody ThirdPartyRelationshipDTO thirdPartyRelationshipDTO) {
         return ResponseEntity.status(HttpStatus.OK)
                 .body(thirdPartyService.getThirdPartiesByRelationshipFilter(thirdPartyRelationshipDTO));
+    }
+
+    @DeleteMapping("/{thirdPartyId}/relationships")
+    public ResponseEntity<String> deleteAllThirdPartyRelationships(@PathVariable String thirdPartyId) {
+        try {
+            return ResponseEntity.status(HttpStatus.OK)
+                    .body(thirdPartyService.deleteAllThirdPartyRelationships(thirdPartyId));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        }
     }
 
 }

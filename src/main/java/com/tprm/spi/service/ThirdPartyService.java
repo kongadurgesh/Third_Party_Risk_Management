@@ -15,6 +15,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.stereotype.Service;
 
+import com.tprm.spi.constants.ThirdPartyConstants;
 import com.tprm.spi.dto.ThirdPartyDTO;
 import com.tprm.spi.dto.ThirdPartyFinancialsDTO;
 import com.tprm.spi.dto.ThirdPartyRelationshipDTO;
@@ -26,6 +27,7 @@ import com.tprm.spi.repository.ThirdPartyRepository;
 
 @Service
 public class ThirdPartyService {
+
     @Autowired
     private ThirdPartyRepository thirdPartyRepository;
 
@@ -184,7 +186,7 @@ public class ThirdPartyService {
         ThirdPartyDTO thirdPartyDTO = getThirdPartyById(thirdPartyId).get();
         if (thirdPartyDTO.getThirdPartyRelationships().size() == 0)
             throw new ThirdPartyRelationshipNotFoundException(
-                    "Third Party Relationships do not exist to this Third Party...");
+                    ThirdPartyConstants.NO_THIRD_PARTY_RELATIONSHIPS);
         thirdPartyRelationshipService.deleteRelationshipbyId(thirdPartyRelationshipId);
 
         thirdPartyDTO.getThirdPartyRelationships().removeIf(thirdPartyRelationshipDTO -> thirdPartyRelationshipDTO
@@ -207,8 +209,16 @@ public class ThirdPartyService {
                 .collect(Collectors.toList());
     }
 
-    public String deleteAllThirdPartyRelationships(String thirdPartyId) {
-        // TODO:
-        return null;
+    public String deleteAllThirdPartyRelationships(String thirdPartyId) throws ThirdPartyRelationshipNotFoundException {
+        if (getThirdPartyById(thirdPartyId).get().getThirdPartyRelationships().isEmpty()) {
+            throw new ThirdPartyRelationshipNotFoundException(ThirdPartyConstants.NO_THIRD_PARTY_RELATIONSHIPS);
+        }
+        ThirdPartyDTO thirdPartyDTO = getThirdPartyById(thirdPartyId).get();
+        List<String> thirdPartyRelationhshipIds = thirdPartyDTO.getThirdPartyRelationships().stream()
+                .map(ThirdPartyRelationshipDTO::getRelationshipId).collect(Collectors.toList());
+        thirdPartyDTO.setThirdPartyRelationships(new ArrayList<>());
+        thirdPartyRelationshipService.deleteAllRelationships(thirdPartyRelationhshipIds);
+        thirdPartyRepository.save(convertToThirdPartyEntity(thirdPartyDTO));
+        return ThirdPartyConstants.ALL_RELATIONSHIPS_DELETED;
     }
 }

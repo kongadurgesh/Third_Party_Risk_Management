@@ -98,7 +98,7 @@ public class ThirdPartyService {
                 thirdPartyRepository.deleteById(id);
                 return "Third Party Deleted Successfully";
             } else {
-                throw new ThirdPartyNotFoundException("Third Party Not Found in the DataBase");
+                throw new ThirdPartyNotFoundException(ThirdPartyConstants.THIRD_PARTY_NOT_FOUND);
             }
         } finally {
 

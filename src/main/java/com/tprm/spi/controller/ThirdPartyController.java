@@ -71,7 +71,7 @@ public class ThirdPartyController {
             return ResponseEntity.ok(thirdPartyDeletionStatus);
         } catch (ThirdPartyNotFoundException thirdPartyNotFoundException) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(ThirdPartyConstants.THIRD_PARTY_DOES_NOT_FOUND);
+                    .body(ThirdPartyConstants.THIRD_PARTY_NOT_FOUND);
         }
     }
 

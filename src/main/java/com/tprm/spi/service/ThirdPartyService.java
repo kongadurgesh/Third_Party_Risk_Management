@@ -14,6 +14,8 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.tprm.spi.constants.ThirdPartyConstants;
 import com.tprm.spi.dto.ThirdPartyDTO;
@@ -59,6 +61,7 @@ public class ThirdPartyService {
         return thirdparty.map(this::convertToThirdPartyDTO);
     }
 
+    @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
     public ThirdPartyDTO createThirdParty(ThirdPartyDTO thirdPartyDTO)
             throws ThirdpartyNameConflictException, ThirdPartyCreationFailureException {
         if (thirdPartyRepository.findByName(thirdPartyDTO.getName()).isPresent()) {
@@ -69,15 +72,14 @@ public class ThirdPartyService {
                 .saveFinancials(thirdPartyDTO.getFinancials());
         List<ThirdPartyRelationshipDTO> thirdPartyRelationshipDTOs = thirdPartyRelationshipService
                 .addAllRelationships(thirdPartyDTO.getRelationships());
+        thirdPartyDTO.setFinancials(thirdPartyFinancialsDTO);
         thirdPartyDTO.setRelationships(thirdPartyRelationshipDTOs);
         ThirdParty thirdParty = convertToThirdPartyEntity(thirdPartyDTO);
         try {
-            thirdParty.getFinancials().setFinancialID(thirdPartyFinancialsDTO.getFinancialID());
             createdThirdPartyDTO = convertToThirdPartyDTO(thirdPartyRepository.save(thirdParty));
         } catch (Exception e) {
-            LOGGER.error(e.getMessage());
+            System.out.println(e.getClass());
             LOGGER.info("Reverting the Saved Financials Information as Third Party creation Failed...");
-            thirdPartyFinancialService.deleteFinancialsbyId(thirdPartyFinancialsDTO.getFinancialID());
             throw new ThirdPartyCreationFailureException(e.getMessage());
         }
         return createdThirdPartyDTO;

@@ -7,6 +7,7 @@ import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.tprm.spi.dto.ThirdPartyRelationshipDTO;
 import com.tprm.spi.entity.ThirdPartyRelationship;
@@ -30,6 +31,7 @@ public class ThirdPartyRelationshipService {
 
     }
 
+    @Transactional
     public List<ThirdPartyRelationshipDTO> addAllRelationships(
             List<ThirdPartyRelationshipDTO> thirdPartyRelationshipDTOs) {
         return thirdPartyRelationshipRepository.saveAll(thirdPartyRelationshipDTOs.stream()

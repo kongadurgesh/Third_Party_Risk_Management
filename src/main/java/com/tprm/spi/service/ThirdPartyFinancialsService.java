@@ -5,6 +5,7 @@ import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.tprm.spi.dto.ThirdPartyFinancialsDTO;
 import com.tprm.spi.entity.ThirdPartyFinancials;
@@ -21,6 +22,7 @@ public class ThirdPartyFinancialsService {
     @Autowired
     private ModelMapper modelMapper;
 
+    @Transactional
     public ThirdPartyFinancialsDTO saveFinancials(ThirdPartyFinancialsDTO thirdPartyFinancialsDTO) {
         ThirdPartyFinancials thirdPartyFinancials = convertToThirdPartyFinancialsEntity(thirdPartyFinancialsDTO);
         return convertToThirdPartyFinancialsDTO(thirdPartyFinancialsRepository.save(thirdPartyFinancials));

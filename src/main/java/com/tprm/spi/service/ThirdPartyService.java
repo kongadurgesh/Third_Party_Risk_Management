@@ -16,6 +16,7 @@ import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 
 import com.tprm.spi.constants.ThirdPartyConstants;
 import com.tprm.spi.dto.ThirdPartyDTO;
@@ -62,6 +63,7 @@ public class ThirdPartyService {
     }
 
     @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
+    @ExceptionHandler(Exception.class)
     public ThirdPartyDTO createThirdParty(ThirdPartyDTO thirdPartyDTO)
             throws ThirdpartyNameConflictException, ThirdPartyCreationFailureException {
         if (thirdPartyRepository.findByName(thirdPartyDTO.getName()).isPresent()) {

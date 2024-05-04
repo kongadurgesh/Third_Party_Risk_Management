@@ -69,7 +69,6 @@ public class ThirdPartyService {
         if (thirdPartyRepository.findByName(thirdPartyDTO.getName()).isPresent()) {
             throw new ThirdpartyNameConflictException("Third Party already exists in the DataBase...");
         }
-        ThirdPartyDTO createdThirdPartyDTO = new ThirdPartyDTO();
         ThirdPartyFinancialsDTO thirdPartyFinancialsDTO = thirdPartyFinancialService
                 .saveFinancials(thirdPartyDTO.getFinancials());
         List<ThirdPartyRelationshipDTO> thirdPartyRelationshipDTOs = thirdPartyRelationshipService
@@ -78,13 +77,12 @@ public class ThirdPartyService {
         thirdPartyDTO.setRelationships(thirdPartyRelationshipDTOs);
         ThirdParty thirdParty = convertToThirdPartyEntity(thirdPartyDTO);
         try {
-            createdThirdPartyDTO = convertToThirdPartyDTO(thirdPartyRepository.save(thirdParty));
+            return convertToThirdPartyDTO(thirdPartyRepository.save(thirdParty));
         } catch (Exception e) {
             System.out.println(e.getClass());
             LOGGER.info("Reverting the Saved Financials Information as Third Party creation Failed...");
             throw new ThirdPartyCreationFailureException(e.getMessage());
         }
-        return createdThirdPartyDTO;
     }
 
     public Optional<ThirdPartyDTO> updateThirdParty(String id, ThirdPartyDTO thirdPartyDTOToUpdate) {

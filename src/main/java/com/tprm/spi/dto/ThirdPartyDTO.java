@@ -2,9 +2,11 @@ package com.tprm.spi.dto;
 
 import java.util.List;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
 
 @Data
+@AllArgsConstructor
 public class ThirdPartyDTO {
     private String id;
     private String name;

@@ -24,6 +24,11 @@ import org.mockito.MockitoAnnotations;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.modelmapper.ModelMapper;
 import org.springframework.boot.test.autoconfigure.data.mongo.DataMongoTest;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.mongodb.core.MongoTemplate;
+
 import com.tprm.spi.dto.ThirdPartyDTO;
 import com.tprm.spi.dto.ThirdPartyFinancialsDTO;
 import com.tprm.spi.dto.ThirdPartyRelationshipDTO;
@@ -47,6 +52,9 @@ public class ThirdPartyServiceTest {
 
     @Mock
     private ModelMapper modelMapper;
+
+    @Mock
+    private MongoTemplate mongoTemplate;
 
     @BeforeEach
     public void SetUp() {
@@ -159,6 +167,177 @@ public class ThirdPartyServiceTest {
 
         assertEquals(actualList, actualList);
 
+    }
+
+    @Test
+    public void testGetThirdPartyById() {
+        String thirdPartyId = "TPR-123";
+
+        ThirdPartyDTO testThirdPartyDTO = new ThirdPartyDTOBuilder()
+                .setId("TPR-123")
+                .setName("Acme Corporation")
+                .setAddress("123 Main St, Anytown, CA 12345")
+                .setPhoneNumber("123-456-7890")
+                .setEmailAddress("info@acme.com")
+                .setPrimaryContactName("John Doe")
+                .setPrimaryContactTitle("CEO")
+                .setPrimaryContactEmail("john.doe@acme.com")
+                .setLegalStructure("C-Corporation").getThirdPartyDTO();
+        ThirdPartyFinancialsDTO thirdPartyFinancialsDTO = new ThirdPartyFinancialsDTOBuilder().setCashFlow(0)
+                .setCurrentRatio(0).setDebtToEquityRatio(0).setEbitda(0).setFinancialID("123").setGrossMargin(0)
+                .setNetIncome(0).setOperatingExpenses(0).setProfitMargins(0).setQuickRatio(0).setRevenue(0)
+                .getThirdPartyFinancialsDTO();
+        testThirdPartyDTO.setFinancials(thirdPartyFinancialsDTO);
+        List<ThirdPartyRelationshipDTO> thirdPartyRelationshipDTOs = new ArrayList<>();
+
+        // Create the first DTO object
+        ThirdPartyRelationshipDTO dto1 = new ThirdPartyRelationshipDTOBuilder()
+                // Set data for the first object (as shown in the previous response)
+                .setRelationshipId("TPR-123")
+                .setRelationshipType("Vendor")
+                // ... set other fields ...
+                .getThirdPartyRelationshipDTO();
+
+        // Create the second DTO object
+        ThirdPartyRelationshipDTO dto2 = new ThirdPartyRelationshipDTOBuilder()
+                // Set data for the second object (modify data as needed)
+                .setRelationshipId("TPR-456")
+                .setRelationshipType("Client")
+                // ... set other fields with different data ...
+                .getThirdPartyRelationshipDTO();
+
+        // Add both DTO objects to the list
+        thirdPartyRelationshipDTOs.add(dto1);
+        thirdPartyRelationshipDTOs.add(dto2);
+
+        testThirdPartyDTO.setRelationships(thirdPartyRelationshipDTOs);
+
+        ThirdParty thirdParty = modelMapper.map(testThirdPartyDTO, ThirdParty.class);
+
+        Optional<ThirdParty> optional = Optional.of(thirdParty);
+
+        when(thirdPartyRepository.findById(thirdPartyId)).thenReturn(optional);
+
+        ThirdPartyDTO actualThirdPartyDTO = thirdPartyService.getThirdPartyById(thirdPartyId).get();
+
+        ThirdParty thirdParty2 = modelMapper.map(actualThirdPartyDTO, ThirdParty.class);
+
+        assertEquals(testThirdPartyDTO, actualThirdPartyDTO);
+
+        assertEquals(thirdParty2, thirdParty);
+
+    }
+
+    @Test
+    public void testGetThirdPartiesByFilter() {
+        ThirdPartyDTO testThirdPartyDTO = new ThirdPartyDTOBuilder()
+                .setId("TPR-123")
+                .setName("Acme Corporation")
+                .setAddress("123 Main St, Anytown, CA 12345")
+                .setPhoneNumber("123-456-7890")
+                .setEmailAddress("info@acme.com")
+                .setPrimaryContactName("John Doe")
+                .setPrimaryContactTitle("CEO")
+                .setPrimaryContactEmail("john.doe@acme.com")
+                .setLegalStructure("C-Corporation").getThirdPartyDTO();
+        ThirdPartyFinancialsDTO thirdPartyFinancialsDTO = new ThirdPartyFinancialsDTOBuilder().setCashFlow(0)
+                .setCurrentRatio(0).setDebtToEquityRatio(0).setEbitda(0).setFinancialID("123").setGrossMargin(0)
+                .setNetIncome(0).setOperatingExpenses(0).setProfitMargins(0).setQuickRatio(0).setRevenue(0)
+                .getThirdPartyFinancialsDTO();
+        testThirdPartyDTO.setFinancials(thirdPartyFinancialsDTO);
+        List<ThirdPartyRelationshipDTO> thirdPartyRelationshipDTOs = new ArrayList<>();
+
+        // Create the first DTO object
+        ThirdPartyRelationshipDTO dto1 = new ThirdPartyRelationshipDTOBuilder()
+                // Set data for the first object (as shown in the previous response)
+                .setRelationshipId("TPR-123")
+                .setRelationshipType("Vendor")
+                // ... set other fields ...
+                .getThirdPartyRelationshipDTO();
+
+        // Create the second DTO object
+        ThirdPartyRelationshipDTO dto2 = new ThirdPartyRelationshipDTOBuilder()
+                // Set data for the second object (modify data as needed)
+                .setRelationshipId("TPR-456")
+                .setRelationshipType("Client")
+                // ... set other fields with different data ...
+                .getThirdPartyRelationshipDTO();
+
+        // Add both DTO objects to the list
+        thirdPartyRelationshipDTOs.add(dto1);
+        thirdPartyRelationshipDTOs.add(dto2);
+
+        testThirdPartyDTO.setRelationships(thirdPartyRelationshipDTOs);
+
+        List<ThirdPartyDTO> thirdPartyDTOs = Arrays.asList(testThirdPartyDTO);
+
+        List<ThirdParty> thirdParties = thirdPartyDTOs.stream()
+                .map(thirdPartyDTO -> modelMapper.map(thirdPartyDTO, ThirdParty.class)).collect(Collectors.toList());
+
+        ThirdParty thirdParty = modelMapper.map(testThirdPartyDTO, ThirdParty.class);
+
+        when(thirdPartyRepository.getThirdPartiesbyFilter(thirdParty, mongoTemplate)).thenReturn(thirdParties);
+
+        List<ThirdPartyDTO> actualList = thirdPartyService.getThirdPartiesByFilter(testThirdPartyDTO);
+
+        assertEquals(thirdPartyDTOs, actualList);
+
+    }
+
+    @Test
+    public void testGetAllThirdPartiesPage() {
+        ThirdPartyDTO testThirdPartyDTO = new ThirdPartyDTOBuilder()
+                .setId("TPR-123")
+                .setName("Acme Corporation")
+                .setAddress("123 Main St, Anytown, CA 12345")
+                .setPhoneNumber("123-456-7890")
+                .setEmailAddress("info@acme.com")
+                .setPrimaryContactName("John Doe")
+                .setPrimaryContactTitle("CEO")
+                .setPrimaryContactEmail("john.doe@acme.com")
+                .setLegalStructure("C-Corporation").getThirdPartyDTO();
+        ThirdPartyFinancialsDTO thirdPartyFinancialsDTO = new ThirdPartyFinancialsDTOBuilder().setCashFlow(0)
+                .setCurrentRatio(0).setDebtToEquityRatio(0).setEbitda(0).setFinancialID("123").setGrossMargin(0)
+                .setNetIncome(0).setOperatingExpenses(0).setProfitMargins(0).setQuickRatio(0).setRevenue(0)
+                .getThirdPartyFinancialsDTO();
+        testThirdPartyDTO.setFinancials(thirdPartyFinancialsDTO);
+        List<ThirdPartyRelationshipDTO> thirdPartyRelationshipDTOs = new ArrayList<>();
+
+        // Create the first DTO object
+        ThirdPartyRelationshipDTO dto1 = new ThirdPartyRelationshipDTOBuilder()
+                // Set data for the first object (as shown in the previous response)
+                .setRelationshipId("TPR-123")
+                .setRelationshipType("Vendor")
+                // ... set other fields ...
+                .getThirdPartyRelationshipDTO();
+
+        // Create the second DTO object
+        ThirdPartyRelationshipDTO dto2 = new ThirdPartyRelationshipDTOBuilder()
+                // Set data for the second object (modify data as needed)
+                .setRelationshipId("TPR-456")
+                .setRelationshipType("Client")
+                // ... set other fields with different data ...
+                .getThirdPartyRelationshipDTO();
+
+        // Add both DTO objects to the list
+        thirdPartyRelationshipDTOs.add(dto1);
+        thirdPartyRelationshipDTOs.add(dto2);
+
+        testThirdPartyDTO.setRelationships(thirdPartyRelationshipDTOs);
+
+        ThirdParty thirdParty = modelMapper.map(testThirdPartyDTO, ThirdParty.class);
+
+        Integer testPage = 0;
+        Integer testSize = 1;
+
+        Page<ThirdPartyDTO> pageDtos = new PageImpl<>(Arrays.asList(testThirdPartyDTO));
+        Page<ThirdParty> page = new PageImpl<>(Arrays.asList(thirdParty));
+
+        when(thirdPartyRepository.findAll(PageRequest.of(testPage, testSize))).thenReturn(page);
+
+        Page<ThirdPartyDTO> actualPage = thirdPartyService.getAllThirdParties(testPage, testSize);
+
+        assertEquals(pageDtos, actualPage);
     }
 
 }

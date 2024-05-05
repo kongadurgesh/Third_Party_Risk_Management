@@ -132,7 +132,7 @@ public class ThirdPartyService {
                 .collect(Collectors.toList());
     }
 
-    public Page<ThirdPartyDTO> getAllThirdParties(int page, int size) {
+    public Page<ThirdPartyDTO> getAllThirdParties(Integer page, Integer size) {
         Pageable pageable = PageRequest.of(page, size);
         Page<ThirdParty> thirdPartiesPage = thirdPartyRepository.findAll(pageable);
         return thirdPartiesPage.map(this::convertToThirdPartyDTO);

@@ -6,8 +6,6 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.modelmapper.ModelMapper;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -29,6 +27,8 @@ import com.tprm.spi.exception.ThirdPartyRelationshipNotFoundException;
 import com.tprm.spi.exception.ThirdpartyNameConflictException;
 import com.tprm.spi.repository.ThirdPartyRepository;
 
+import jakarta.validation.ConstraintViolationException;
+
 @Service
 public class ThirdPartyService {
 
@@ -47,8 +47,6 @@ public class ThirdPartyService {
     @Autowired
     private ModelMapper modelMapper;
 
-    private final static Logger LOGGER = LoggerFactory.getLogger(ThirdPartyService.class);
-
     public List<ThirdPartyDTO> getAllThirdParties() {
         List<ThirdParty> thirdParties = thirdPartyRepository.findAll();
 
@@ -65,7 +63,7 @@ public class ThirdPartyService {
     @Transactional(propagation = Propagation.REQUIRED, rollbackFor = Exception.class)
     @ExceptionHandler(Exception.class)
     public ThirdPartyDTO createThirdParty(ThirdPartyDTO thirdPartyDTO)
-            throws ThirdpartyNameConflictException, ThirdPartyCreationFailureException {
+            throws ThirdpartyNameConflictException, ThirdPartyCreationFailureException, ConstraintViolationException {
         if (thirdPartyRepository.findByName(thirdPartyDTO.getName()).isPresent()) {
             throw new ThirdpartyNameConflictException("Third Party already exists in the DataBase...");
         }
@@ -76,13 +74,8 @@ public class ThirdPartyService {
         thirdPartyDTO.setFinancials(thirdPartyFinancialsDTO);
         thirdPartyDTO.setRelationships(thirdPartyRelationshipDTOs);
         ThirdParty thirdParty = convertToThirdPartyEntity(thirdPartyDTO);
-        try {
-            return convertToThirdPartyDTO(thirdPartyRepository.save(thirdParty));
-        } catch (Exception e) {
-            System.out.println(e.getClass());
-            LOGGER.info("Reverting the Saved Financials Information as Third Party creation Failed...");
-            throw new ThirdPartyCreationFailureException(e.getMessage());
-        }
+        return convertToThirdPartyDTO(thirdPartyRepository.save(thirdParty));
+
     }
 
     public Optional<ThirdPartyDTO> updateThirdParty(String id, ThirdPartyDTO thirdPartyDTOToUpdate) {

@@ -27,6 +27,7 @@ import com.tprm.spi.exception.ThirdPartyRelationshipNotFoundException;
 import com.tprm.spi.exception.ThirdpartyNameConflictException;
 import com.tprm.spi.service.ThirdPartyService;
 
+import jakarta.validation.ConstraintViolationException;
 import jakarta.validation.Valid;
 
 @RestController
@@ -56,6 +57,8 @@ public class ThirdPartyController {
             return ResponseEntity.status(HttpStatus.CONFLICT).body(thirdpartyNameConflictException.getMessage());
         } catch (ThirdPartyCreationFailureException thirdPartyCreationFailureException) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(thirdPartyCreationFailureException.getMessage());
+        } catch (ConstraintViolationException constraintViolationException) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(constraintViolationException.getMessage());
         }
 
     }

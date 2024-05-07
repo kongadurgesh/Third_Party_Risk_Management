@@ -8,6 +8,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -20,6 +21,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.modelmapper.ModelMapper;
 import org.springframework.boot.test.autoconfigure.data.mongo.DataMongoTest;
@@ -55,7 +57,7 @@ public class ThirdPartyServiceTest {
 	@Mock
 	private ThirdPartyRepository thirdPartyRepository;
 
-	@Mock
+	@Spy
 	private ModelMapper modelMapper;
 
 	@Mock
@@ -309,7 +311,6 @@ public class ThirdPartyServiceTest {
 		ThirdParty thirdParty = modelMapper.map(testThirdPartyDTO, ThirdParty.class);
 		when(thirdPartyRepository.getThirdPartiesbyFilter(thirdParty, mongoTemplate)).thenReturn(thirdParties);
 		List<ThirdPartyDTO> actualList = thirdPartyService.getThirdPartiesByFilter(testThirdPartyDTO);
-		thirdPartyDTOs.set(0, null);
 		assertEquals(thirdPartyDTOs, actualList);
 
 		verify(thirdPartyRepository, times(1)).getThirdPartiesbyFilter(thirdParty, mongoTemplate);
@@ -358,5 +359,61 @@ public class ThirdPartyServiceTest {
 		when(thirdPartyRepository.findAll(PageRequest.of(testPage, testSize))).thenReturn(page);
 		Page<ThirdPartyDTO> actualPage = thirdPartyService.getAllThirdParties(testPage, testSize);
 		assertEquals(1, actualPage.getContent().size());
+	}
+
+	@Test
+	public void testGetThirdPartyFinancials() {
+		String thirdPartyId = "TPR-123";
+
+		ThirdPartyFinancialsDTO thirdPartyFinancialsDTO = new ThirdPartyFinancialsDTO(
+				"FIN-000001",
+				5000000.0,
+				25.0,
+				1250000.0,
+				30.0,
+				3750000.0,
+				875000.0,
+				2.8,
+				2.2,
+				0.4,
+				600000.0);
+
+		ThirdPartyRelationshipDTO thirdPartyRelationshipDTO = new ThirdPartyRelationshipDTO(
+				"REL-000001",
+				"Vendor", // Replace with actual relationship type
+				LocalDate.parse("2023-01-01"), // Replace with actual start date
+				null, // End date can be null for ongoing relationships
+				"Active",
+				"Provides marketing automation services",
+				"Contract details (replace with actual details)",
+				"Renewal every 1 year with automatic notification 3 months prior",
+				"Service Level Agreements defined in separate document (link or reference)",
+				"John Smith",
+				Arrays.asList("Project Alpha", "Project Beta"), // Replace with project names
+				Arrays.asList("Jane Doe (jane.doe@company.com)"), // Replace with contact details
+				"Audit trail information (replace with details)");
+
+		ThirdPartyDTO thirdPartyDTO = new ThirdPartyDTO(
+				"TP-000002",
+				"Innovative Solutions Inc.",
+				"456 Elm Street, Suite 200",
+				"+1 (888) 888-8888",
+				"contact@innovativesolutions.com",
+				"Jane Smith",
+				"President",
+				"jane.smith@innovativesolutions.com",
+				"Limited Liability Company (LLC)",
+				// Provide financials object (can be null for now)
+				thirdPartyFinancialsDTO,
+				// Provide relationships list (can be empty or null for now)
+				Arrays.asList(thirdPartyRelationshipDTO));
+
+		Optional<ThirdParty> thirdParty = Optional.of(modelMapper.map(thirdPartyDTO, ThirdParty.class));
+
+		when(thirdPartyRepository.findById(thirdPartyId)).thenReturn(thirdParty);
+		when(modelMapper.map(thirdParty, ThirdPartyDTO.class)).thenReturn(thirdPartyDTO);
+		ThirdPartyFinancialsDTO actualFinancialsDTO = thirdPartyService.getThirdPartyFinancials(thirdPartyId);
+
+		assertEquals(thirdPartyDTO.getFinancials().getFinancialID(), actualFinancialsDTO.getFinancialID());
 	}
 }

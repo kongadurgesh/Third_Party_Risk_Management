@@ -198,7 +198,7 @@ public class ThirdPartyService {
     public List<ThirdPartyDTO> getThirdPartiesByRelationshipFilter(
             ThirdPartyRelationshipDTO thirdPartyRelationshipDTO) {
         List<String> filteredThirdPartyRelationshipIds = thirdPartyRelationshipService
-                .getThirdPartyIdsByRelationshipFilter(thirdPartyRelationshipDTO, mongoTemplate);
+                .getThirdPartyRelationshipIdsByRelationshipFilter(thirdPartyRelationshipDTO, mongoTemplate);
         List<ThirdPartyDTO> thirdPartyDTOs = getAllThirdParties();
 
         return thirdPartyDTOs.stream()

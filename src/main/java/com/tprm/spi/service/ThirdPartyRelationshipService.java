@@ -39,7 +39,8 @@ public class ThirdPartyRelationshipService {
                 .map(this::convertToThirdPartyRelationshipDTO).collect(Collectors.toList());
     }
 
-    public List<String> getThirdPartyIdsByRelationshipFilter(ThirdPartyRelationshipDTO thirdPartyRelationshipDTO,
+    public List<String> getThirdPartyRelationshipIdsByRelationshipFilter(
+            ThirdPartyRelationshipDTO thirdPartyRelationshipDTO,
             MongoTemplate mongoTemplate) {
         return thirdPartyRelationshipRepository.getThirdPartyRelationshipsIdsByFilter(
                 convertToThirdPartyRelationship(thirdPartyRelationshipDTO), mongoTemplate);

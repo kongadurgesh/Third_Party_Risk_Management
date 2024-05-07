@@ -39,6 +39,7 @@ import com.tprm.spi.dto.builder.ThirdPartyRelationshipDTOBuilder;
 import com.tprm.spi.entity.ThirdParty;
 import com.tprm.spi.exception.ThirdPartyCreationFailureException;
 import com.tprm.spi.exception.ThirdPartyNotFoundException;
+import com.tprm.spi.exception.ThirdPartyRelationshipNotFoundException;
 import com.tprm.spi.exception.ThirdpartyNameConflictException;
 import com.tprm.spi.repository.ThirdPartyRepository;
 
@@ -522,5 +523,730 @@ public class ThirdPartyServiceTest {
 		ThirdPartyFinancialsDTO actualFinancialsDTO = thirdPartyService.getThirdPartyFinancials(thirdPartyId);
 
 		assertEquals(thirdPartyDTO.getFinancials().getFinancialID(), actualFinancialsDTO.getFinancialID());
+	}
+
+	@Test
+	public void testUpdateThirdParty() {
+
+		String thirdPartyId = "TPR-123";
+
+		ThirdPartyFinancialsDTO thirdPartyFinancialsDTO = new ThirdPartyFinancialsDTO(
+				"FIN-000001",
+				5000000.0,
+				25.0,
+				1250000.0,
+				30.0,
+				3750000.0,
+				875000.0,
+				2.8,
+				2.2,
+				0.4,
+				600000.0);
+
+		ThirdPartyRelationshipDTO thirdPartyRelationshipDTO = new ThirdPartyRelationshipDTO(
+				"REL-000001",
+				"Vendor", // Replace with actual relationship type
+				LocalDate.parse("2023-01-01"), // Replace with actual start date
+				null, // End date can be null for ongoing relationships
+				"Active",
+				"Provides marketing automation services",
+				"Contract details (replace with actual details)",
+				"Renewal every 1 year with automatic notification 3 months prior",
+				"Service Level Agreements defined in separate document (link or reference)",
+				"John Smith",
+				Arrays.asList("Project Alpha", "Project Beta"), // Replace with project names
+				Arrays.asList("Jane Doe (jane.doe@company.com)"), // Replace with contact details
+				"Audit trail information (replace with details)");
+
+		ThirdPartyDTO thirdPartyDTO = new ThirdPartyDTO(
+				"TP-000002",
+				"Innovative Solutions Inc.",
+				"456 Elm Street, Suite 200",
+				"+1 (888) 888-8888",
+				"contact@innovativesolutions.com",
+				"Jane Smith",
+				"President",
+				"jane.smith@innovativesolutions.com",
+				"Limited Liability Company (LLC)",
+				// Provide financials object (can be null for now)
+				thirdPartyFinancialsDTO,
+				// Provide relationships list (can be empty or null for now)
+				Arrays.asList(thirdPartyRelationshipDTO));
+
+		ThirdParty thirdParty = modelMapper.map(thirdPartyDTO, ThirdParty.class);
+
+		when(thirdPartyRepository.findById(thirdPartyId)).thenReturn(Optional.of(thirdParty));
+		when(modelMapper.map(thirdPartyDTO, ThirdParty.class)).thenReturn(thirdParty);
+
+		when(modelMapper.map(thirdParty.getFinancials(), ThirdPartyFinancialsDTO.class))
+				.thenReturn(thirdPartyFinancialsDTO);
+
+		when(thirdPartyRepository.save(thirdParty)).thenReturn(thirdParty);
+
+		when(modelMapper.map(thirdParty, ThirdPartyDTO.class)).thenReturn(thirdPartyDTO);
+
+		Optional<ThirdPartyDTO> optionalThirdPartyDTO = thirdPartyService.updateThirdParty(thirdPartyId, thirdPartyDTO);
+
+		assertEquals(thirdPartyDTO, optionalThirdPartyDTO.get());
+	}
+
+	@Test
+	public void testGetThirdPartyFinancialIdsForRevenueRange() {
+		Double fromRange = 10.00;
+		Double toRange = 100.00;
+
+		ThirdPartyFinancialsDTO thirdPartyFinancialsDTO = new ThirdPartyFinancialsDTO(
+				"FIN-000001",
+				5000000.0,
+				25.0,
+				1250000.0,
+				30.0,
+				3750000.0,
+				875000.0,
+				2.8,
+				2.2,
+				0.4,
+				600000.0);
+
+		ThirdPartyRelationshipDTO thirdPartyRelationshipDTO = new ThirdPartyRelationshipDTO(
+				"REL-000001",
+				"Vendor", // Replace with actual relationship type
+				LocalDate.parse("2023-01-01"), // Replace with actual start date
+				null, // End date can be null for ongoing relationships
+				"Active",
+				"Provides marketing automation services",
+				"Contract details (replace with actual details)",
+				"Renewal every 1 year with automatic notification 3 months prior",
+				"Service Level Agreements defined in separate document (link or reference)",
+				"John Smith",
+				Arrays.asList("Project Alpha", "Project Beta"), // Replace with project names
+				Arrays.asList("Jane Doe (jane.doe@company.com)"), // Replace with contact details
+				"Audit trail information (replace with details)");
+
+		ThirdPartyDTO thirdPartyDTO = new ThirdPartyDTO(
+				"TP-000002",
+				"Innovative Solutions Inc.",
+				"456 Elm Street, Suite 200",
+				"+1 (888) 888-8888",
+				"contact@innovativesolutions.com",
+				"Jane Smith",
+				"President",
+				"jane.smith@innovativesolutions.com",
+				"Limited Liability Company (LLC)",
+				// Provide financials object (can be null for now)
+				thirdPartyFinancialsDTO,
+				// Provide relationships list (can be empty or null for now)
+				Arrays.asList(thirdPartyRelationshipDTO));
+
+		List<ThirdPartyDTO> thirdPartyDTOs = Arrays.asList(thirdPartyDTO);
+
+		ThirdParty thirdParty = modelMapper.map(thirdPartyDTO, ThirdParty.class);
+
+		List<ThirdParty> thirdParties = Arrays.asList(thirdParty);
+
+		when(thirdPartyRepository.findAll()).thenReturn(thirdParties);
+
+		when(thirdPartyFinancialsService.getThirdPartyFinancialIdsForRevenueRange(fromRange, toRange))
+				.thenReturn(Arrays.asList(thirdParty.getFinancials().getFinancialID()));
+
+		List<ThirdPartyDTO> actualList = thirdPartyService.getThirdPartiesByRevenueRange(fromRange, toRange);
+
+		assertEquals(thirdPartyDTOs, actualList);
+	}
+
+	@Test
+	public void testGetThirdPartyFinancialIdsForRevenueRangeNull() {
+		Double fromRange = 10.00;
+		Double toRange = 100.00;
+
+		ThirdPartyRelationshipDTO thirdPartyRelationshipDTO = new ThirdPartyRelationshipDTO(
+				"REL-000001",
+				"Vendor", // Replace with actual relationship type
+				LocalDate.parse("2023-01-01"), // Replace with actual start date
+				null, // End date can be null for ongoing relationships
+				"Active",
+				"Provides marketing automation services",
+				"Contract details (replace with actual details)",
+				"Renewal every 1 year with automatic notification 3 months prior",
+				"Service Level Agreements defined in separate document (link or reference)",
+				"John Smith",
+				Arrays.asList("Project Alpha", "Project Beta"), // Replace with project names
+				Arrays.asList("Jane Doe (jane.doe@company.com)"), // Replace with contact details
+				"Audit trail information (replace with details)");
+
+		ThirdPartyDTO thirdPartyDTO = new ThirdPartyDTO(
+				"TP-000002",
+				"Innovative Solutions Inc.",
+				"456 Elm Street, Suite 200",
+				"+1 (888) 888-8888",
+				"contact@innovativesolutions.com",
+				"Jane Smith",
+				"President",
+				"jane.smith@innovativesolutions.com",
+				"Limited Liability Company (LLC)",
+				// Provide financials object (can be null for now)
+				null,
+				// Provide relationships list (can be empty or null for now)
+				Arrays.asList(thirdPartyRelationshipDTO));
+
+		ThirdParty thirdParty = modelMapper.map(thirdPartyDTO, ThirdParty.class);
+
+		List<ThirdParty> thirdParties = Arrays.asList(thirdParty);
+
+		when(thirdPartyRepository.findAll()).thenReturn(thirdParties);
+
+		List<ThirdPartyDTO> actualList = thirdPartyService.getThirdPartiesByRevenueRange(fromRange, toRange);
+
+		assertEquals(Arrays.asList(), actualList);
+	}
+
+	@Test
+	public void testGetThirdPartiesByProfitMargins() {
+		ThirdPartyFinancialsDTO thirdPartyFinancialsDTO = new ThirdPartyFinancialsDTO(
+				"FIN-000001",
+				5000000.0,
+				25.0,
+				1250000.0,
+				30.0,
+				3750000.0,
+				875000.0,
+				2.8,
+				2.2,
+				0.4,
+				600000.0);
+
+		ThirdPartyRelationshipDTO thirdPartyRelationshipDTO = new ThirdPartyRelationshipDTO(
+				"REL-000001",
+				"Vendor", // Replace with actual relationship type
+				LocalDate.parse("2023-01-01"), // Replace with actual start date
+				null, // End date can be null for ongoing relationships
+				"Active",
+				"Provides marketing automation services",
+				"Contract details (replace with actual details)",
+				"Renewal every 1 year with automatic notification 3 months prior",
+				"Service Level Agreements defined in separate document (link or reference)",
+				"John Smith",
+				Arrays.asList("Project Alpha", "Project Beta"), // Replace with project names
+				Arrays.asList("Jane Doe (jane.doe@company.com)"), // Replace with contact details
+				"Audit trail information (replace with details)");
+
+		ThirdPartyDTO thirdPartyDTO = new ThirdPartyDTO(
+				"TP-000002",
+				"Innovative Solutions Inc.",
+				"456 Elm Street, Suite 200",
+				"+1 (888) 888-8888",
+				"contact@innovativesolutions.com",
+				"Jane Smith",
+				"President",
+				"jane.smith@innovativesolutions.com",
+				"Limited Liability Company (LLC)",
+				// Provide financials object (can be null for now)
+				thirdPartyFinancialsDTO,
+				// Provide relationships list (can be empty or null for now)
+				Arrays.asList(thirdPartyRelationshipDTO));
+
+		List<ThirdPartyDTO> thirdPartyDTOs = Arrays.asList(thirdPartyDTO);
+
+		Double profitMargins = 10.00;
+
+		List<ThirdParty> thirdParties = thirdPartyDTOs.stream()
+				.map(tempthirdPartyDTO -> modelMapper.map(tempthirdPartyDTO, ThirdParty.class))
+				.collect(Collectors.toList());
+
+		when(thirdPartyRepository.findAll()).thenReturn(thirdParties);
+
+		when(thirdPartyFinancialsService.getThirdPartyFinancialIdsByProfitMargins(profitMargins))
+				.thenReturn(Arrays.asList(thirdParties.get(0).getFinancials().getFinancialID()));
+
+		List<ThirdPartyDTO> actualDtos = thirdPartyService.getThirdPartiesByProfitMargins(profitMargins);
+
+		assertEquals(thirdPartyDTOs, actualDtos);
+	}
+
+	@Test
+	public void testGetThirdPartiesByProfitMarginsNull() {
+		ThirdPartyRelationshipDTO thirdPartyRelationshipDTO = new ThirdPartyRelationshipDTO(
+				"REL-000001",
+				"Vendor", // Replace with actual relationship type
+				LocalDate.parse("2023-01-01"), // Replace with actual start date
+				null, // End date can be null for ongoing relationships
+				"Active",
+				"Provides marketing automation services",
+				"Contract details (replace with actual details)",
+				"Renewal every 1 year with automatic notification 3 months prior",
+				"Service Level Agreements defined in separate document (link or reference)",
+				"John Smith",
+				Arrays.asList("Project Alpha", "Project Beta"), // Replace with project names
+				Arrays.asList("Jane Doe (jane.doe@company.com)"), // Replace with contact details
+				"Audit trail information (replace with details)");
+
+		ThirdPartyDTO thirdPartyDTO = new ThirdPartyDTO(
+				"TP-000002",
+				"Innovative Solutions Inc.",
+				"456 Elm Street, Suite 200",
+				"+1 (888) 888-8888",
+				"contact@innovativesolutions.com",
+				"Jane Smith",
+				"President",
+				"jane.smith@innovativesolutions.com",
+				"Limited Liability Company (LLC)",
+				// Provide financials object (can be null for now)
+				null,
+				// Provide relationships list (can be empty or null for now)
+				Arrays.asList(thirdPartyRelationshipDTO));
+
+		List<ThirdPartyDTO> thirdPartyDTOs = Arrays.asList(thirdPartyDTO);
+
+		Double profitMargins = 10.00;
+
+		List<ThirdParty> thirdParties = thirdPartyDTOs.stream()
+				.map(tempthirdPartyDTO -> modelMapper.map(tempthirdPartyDTO, ThirdParty.class))
+				.collect(Collectors.toList());
+
+		when(thirdPartyRepository.findAll()).thenReturn(thirdParties);
+
+		List<ThirdPartyDTO> actualDtos = thirdPartyService.getThirdPartiesByProfitMargins(profitMargins);
+
+		assertEquals(Arrays.asList(), actualDtos);
+
+	}
+
+	@Test
+	public void testGetThirdPartiesByFinancialFilters() {
+		ThirdPartyFinancialsDTO thirdPartyFinancialsDTO = new ThirdPartyFinancialsDTO(
+				"FIN-000001",
+				5000000.0,
+				25.0,
+				1250000.0,
+				30.0,
+				3750000.0,
+				875000.0,
+				2.8,
+				2.2,
+				0.4,
+				600000.0);
+
+		ThirdPartyRelationshipDTO thirdPartyRelationshipDTO = new ThirdPartyRelationshipDTO(
+				"REL-000001",
+				"Vendor", // Replace with actual relationship type
+				LocalDate.parse("2023-01-01"), // Replace with actual start date
+				null, // End date can be null for ongoing relationships
+				"Active",
+				"Provides marketing automation services",
+				"Contract details (replace with actual details)",
+				"Renewal every 1 year with automatic notification 3 months prior",
+				"Service Level Agreements defined in separate document (link or reference)",
+				"John Smith",
+				Arrays.asList("Project Alpha", "Project Beta"), // Replace with project names
+				Arrays.asList("Jane Doe (jane.doe@company.com)"), // Replace with contact details
+				"Audit trail information (replace with details)");
+
+		ThirdPartyDTO thirdPartyDTO = new ThirdPartyDTO(
+				"TP-000002",
+				"Innovative Solutions Inc.",
+				"456 Elm Street, Suite 200",
+				"+1 (888) 888-8888",
+				"contact@innovativesolutions.com",
+				"Jane Smith",
+				"President",
+				"jane.smith@innovativesolutions.com",
+				"Limited Liability Company (LLC)",
+				// Provide financials object (can be null for now)
+				thirdPartyFinancialsDTO,
+				// Provide relationships list (can be empty or null for now)
+				Arrays.asList(thirdPartyRelationshipDTO));
+
+		List<ThirdPartyDTO> thirdPartyDTOs = Arrays.asList(thirdPartyDTO);
+
+		List<ThirdParty> thirdParties = thirdPartyDTOs.stream()
+				.map(tempthirdPartyDTO -> modelMapper.map(tempthirdPartyDTO, ThirdParty.class))
+				.collect(Collectors.toList());
+
+		when(thirdPartyRepository.findAll()).thenReturn(thirdParties);
+
+		when(thirdPartyFinancialsService.getThirdPartyFinancialIdsByFilters(thirdPartyFinancialsDTO))
+				.thenReturn(Arrays.asList(thirdParties.get(0).getFinancials().getFinancialID()));
+
+		List<ThirdPartyDTO> actualDtos = thirdPartyService.getThirdPartiesByFinancialFilters(thirdPartyFinancialsDTO);
+
+		assertEquals(thirdPartyDTOs, actualDtos);
+	}
+
+	@Test
+	public void testAddRelationshipToThirdParty() {
+		ThirdPartyFinancialsDTO thirdPartyFinancialsDTO = new ThirdPartyFinancialsDTO(
+				"FIN-000001",
+				5000000.0,
+				25.0,
+				1250000.0,
+				30.0,
+				3750000.0,
+				875000.0,
+				2.8,
+				2.2,
+				0.4,
+				600000.0);
+
+		ThirdPartyRelationshipDTO thirdPartyRelationshipDTO = new ThirdPartyRelationshipDTO(
+				"REL-000001",
+				"Vendor", // Replace with actual relationship type
+				LocalDate.parse("2023-01-01"), // Replace with actual start date
+				null, // End date can be null for ongoing relationships
+				"Active",
+				"Provides marketing automation services",
+				"Contract details (replace with actual details)",
+				"Renewal every 1 year with automatic notification 3 months prior",
+				"Service Level Agreements defined in separate document (link or reference)",
+				"John Smith",
+				Arrays.asList("Project Alpha", "Project Beta"), // Replace with project names
+				Arrays.asList("Jane Doe (jane.doe@company.com)"), // Replace with contact details
+				"Audit trail information (replace with details)");
+
+		ThirdPartyDTO thirdPartyDTO = new ThirdPartyDTO(
+				"TP-000002",
+				"Innovative Solutions Inc.",
+				"456 Elm Street, Suite 200",
+				"+1 (888) 888-8888",
+				"contact@innovativesolutions.com",
+				"Jane Smith",
+				"President",
+				"jane.smith@innovativesolutions.com",
+				"Limited Liability Company (LLC)",
+				// Provide financials object (can be null for now)
+				thirdPartyFinancialsDTO,
+				// Provide relationships list (can be empty or null for now)
+				null);
+
+		when(thirdPartyRelationshipService.addRelationshipToThirdParty(thirdPartyRelationshipDTO))
+				.thenReturn(thirdPartyRelationshipDTO.getRelationshipId());
+
+		ThirdParty thirdParty = modelMapper.map(thirdPartyDTO, ThirdParty.class);
+
+		when(thirdPartyRepository.findById(thirdPartyDTO.getId())).thenReturn(Optional.of(thirdParty));
+
+		thirdPartyDTO.setRelationships(Arrays.asList(thirdPartyRelationshipDTO));
+
+		thirdParty = modelMapper.map(thirdPartyDTO, ThirdParty.class);
+
+		when(thirdPartyRepository.save(thirdParty)).thenReturn(thirdParty);
+
+		ThirdPartyDTO actualDto = thirdPartyService.addRelationshipToThirdParty(thirdPartyDTO.getId(),
+				thirdPartyRelationshipDTO);
+
+		assertEquals(thirdPartyDTO, actualDto);
+	}
+
+	@Test
+	public void testAddRelationshipToThirdPartyWithRelationship() {
+		ThirdPartyFinancialsDTO thirdPartyFinancialsDTO = new ThirdPartyFinancialsDTO(
+				"FIN-000001",
+				5000000.0,
+				25.0,
+				1250000.0,
+				30.0,
+				3750000.0,
+				875000.0,
+				2.8,
+				2.2,
+				0.4,
+				600000.0);
+
+		ThirdPartyRelationshipDTO thirdPartyRelationshipDTO = new ThirdPartyRelationshipDTO(
+				"REL-000001",
+				"Vendor", // Replace with actual relationship type
+				LocalDate.parse("2023-01-01"), // Replace with actual start date
+				null, // End date can be null for ongoing relationships
+				"Active",
+				"Provides marketing automation services",
+				"Contract details (replace with actual details)",
+				"Renewal every 1 year with automatic notification 3 months prior",
+				"Service Level Agreements defined in separate document (link or reference)",
+				"John Smith",
+				Arrays.asList("Project Alpha", "Project Beta"), // Replace with project names
+				Arrays.asList("Jane Doe (jane.doe@company.com)"), // Replace with contact details
+				"Audit trail information (replace with details)");
+
+		ThirdPartyDTO thirdPartyDTO = new ThirdPartyDTO(
+				"TP-000002",
+				"Innovative Solutions Inc.",
+				"456 Elm Street, Suite 200",
+				"+1 (888) 888-8888",
+				"contact@innovativesolutions.com",
+				"Jane Smith",
+				"President",
+				"jane.smith@innovativesolutions.com",
+				"Limited Liability Company (LLC)",
+				// Provide financials object (can be null for now)
+				thirdPartyFinancialsDTO,
+				// Provide relationships list (can be empty or null for now)
+				Arrays.asList(thirdPartyRelationshipDTO));
+
+		ThirdPartyRelationshipDTO thirdPartyRelationshipDTO2 = new ThirdPartyRelationshipDTO(
+				"REL-000002",
+				"Vendor", // Replace with actual relationship type
+				LocalDate.parse("2023-01-01"), // Replace with actual start date
+				null, // End date can be null for ongoing relationships
+				"Active",
+				"Provides marketing automation services",
+				"Contract details (replace with actual details)",
+				"Renewal every 1 year with automatic notification 3 months prior",
+				"Service Level Agreements defined in separate document (link or reference)",
+				"John Smith",
+				Arrays.asList("Project Alpha", "Project Beta"), // Replace with project names
+				Arrays.asList("Jane Doe (jane.doe@company.com)"), // Replace with contact details
+				"Audit trail information (replace with details)");
+
+		when(thirdPartyRelationshipService.addRelationshipToThirdParty(thirdPartyRelationshipDTO2))
+				.thenReturn(thirdPartyRelationshipDTO2.getRelationshipId());
+
+		ThirdParty thirdParty = modelMapper.map(thirdPartyDTO, ThirdParty.class);
+
+		when(thirdPartyRelationshipService.addRelationshipToThirdParty(thirdPartyRelationshipDTO2))
+				.thenReturn(thirdPartyRelationshipDTO2.getRelationshipId());
+		when(thirdPartyRepository.findById(thirdPartyDTO.getId())).thenReturn(Optional.of(thirdParty));
+
+		List<ThirdPartyRelationshipDTO> modifiableRelationships = new ArrayList<>(thirdPartyDTO.getRelationships());
+		modifiableRelationships.add(thirdPartyRelationshipDTO2);
+		thirdPartyDTO.setRelationships(modifiableRelationships); // Assuming a setter exists
+
+		thirdParty = modelMapper.map(thirdPartyDTO, ThirdParty.class);
+
+		when(thirdPartyRepository.save(thirdParty)).thenReturn(thirdParty);
+
+		ThirdPartyDTO actualDto = thirdPartyService.addRelationshipToThirdParty(thirdPartyDTO.getId(),
+				thirdPartyRelationshipDTO2);
+
+		assertEquals(thirdPartyDTO, actualDto);
+	}
+
+	@Test
+	public void testGetThirdPartiesByRelationshipFilter() {
+
+		ThirdPartyRelationshipDTO thirdPartyRelationshipDTO = new ThirdPartyRelationshipDTO(
+				"REL-000001",
+				"Vendor", // Replace with actual relationship type
+				LocalDate.parse("2023-01-01"), // Replace with actual start date
+				null, // End date can be null for ongoing relationships
+				"Active",
+				"Provides marketing automation services",
+				"Contract details (replace with actual details)",
+				"Renewal every 1 year with automatic notification 3 months prior",
+				"Service Level Agreements defined in separate document (link or reference)",
+				"John Smith",
+				Arrays.asList("Project Alpha", "Project Beta"), // Replace with project names
+				Arrays.asList("Jane Doe (jane.doe@company.com)"), // Replace with contact details
+				"Audit trail information (replace with details)");
+
+		ThirdPartyRelationshipDTO thirdPartyRelationshipDTO2 = new ThirdPartyRelationshipDTO(
+				"REL-000002",
+				"Vendor", // Replace with actual relationship type
+				LocalDate.parse("2023-01-01"), // Replace with actual start date
+				null, // End date can be null for ongoing relationships
+				"Active",
+				"Provides marketing automation services",
+				"Contract details (replace with actual details)",
+				"Renewal every 1 year with automatic notification 3 months prior",
+				"Service Level Agreements defined in separate document (link or reference)",
+				"John Smith",
+				Arrays.asList("Project Alpha", "Project Beta"), // Replace with project names
+				Arrays.asList("Jane Doe (jane.doe@company.com)"), // Replace with contact details
+				"Audit trail information (replace with details)");
+
+		List<String> filteredThirdPartyRelationshipIds = Arrays.asList(thirdPartyRelationshipDTO.getRelationshipId(),
+				thirdPartyRelationshipDTO2.getRelationshipId());
+
+		when(thirdPartyRelationshipService.getThirdPartyRelationshipIdsByRelationshipFilter(thirdPartyRelationshipDTO2,
+				mongoTemplate)).thenReturn(filteredThirdPartyRelationshipIds);
+
+		ThirdPartyDTO thirdPartyDTO = new ThirdPartyDTO(
+				"TP-000002",
+				"Innovative Solutions Inc.",
+				"456 Elm Street, Suite 200",
+				"+1 (888) 888-8888",
+				"contact@innovativesolutions.com",
+				"Jane Smith",
+				"President",
+				"jane.smith@innovativesolutions.com",
+				"Limited Liability Company (LLC)",
+				// Provide financials object (can be null for now)
+				null,
+				// Provide relationships list (can be empty or null for now)
+				Arrays.asList(thirdPartyRelationshipDTO));
+
+		ThirdParty thirdParty = modelMapper.map(thirdPartyDTO, ThirdParty.class);
+		when(thirdPartyRepository.findAll()).thenReturn(Arrays.asList(thirdParty));
+
+		List<ThirdPartyDTO> actualList = thirdPartyService
+				.getThirdPartiesByRelationshipFilter(thirdPartyRelationshipDTO2);
+
+		assertEquals(Arrays.asList(thirdPartyDTO), actualList);
+	}
+
+	@Test
+	public void testGetThirdPartiesByRelationshipFilterNull() {
+
+		ThirdPartyRelationshipDTO thirdPartyRelationshipDTO = new ThirdPartyRelationshipDTO(
+				"REL-000001",
+				"Vendor", // Replace with actual relationship type
+				LocalDate.parse("2023-01-01"), // Replace with actual start date
+				null, // End date can be null for ongoing relationships
+				"Active",
+				"Provides marketing automation services",
+				"Contract details (replace with actual details)",
+				"Renewal every 1 year with automatic notification 3 months prior",
+				"Service Level Agreements defined in separate document (link or reference)",
+				"John Smith",
+				Arrays.asList("Project Alpha", "Project Beta"), // Replace with project names
+				Arrays.asList("Jane Doe (jane.doe@company.com)"), // Replace with contact details
+				"Audit trail information (replace with details)");
+
+		ThirdPartyRelationshipDTO thirdPartyRelationshipDTO2 = new ThirdPartyRelationshipDTO(
+				"REL-000002",
+				"Vendor", // Replace with actual relationship type
+				LocalDate.parse("2023-01-01"), // Replace with actual start date
+				null, // End date can be null for ongoing relationships
+				"Active",
+				"Provides marketing automation services",
+				"Contract details (replace with actual details)",
+				"Renewal every 1 year with automatic notification 3 months prior",
+				"Service Level Agreements defined in separate document (link or reference)",
+				"John Smith",
+				Arrays.asList("Project Alpha", "Project Beta"), // Replace with project names
+				Arrays.asList("Jane Doe (jane.doe@company.com)"), // Replace with contact details
+				"Audit trail information (replace with details)");
+
+		List<String> filteredThirdPartyRelationshipIds = Arrays.asList(thirdPartyRelationshipDTO.getRelationshipId(),
+				thirdPartyRelationshipDTO2.getRelationshipId());
+
+		when(thirdPartyRelationshipService.getThirdPartyRelationshipIdsByRelationshipFilter(thirdPartyRelationshipDTO2,
+				mongoTemplate)).thenReturn(filteredThirdPartyRelationshipIds);
+
+		ThirdPartyDTO thirdPartyDTO = new ThirdPartyDTO(
+				"TP-000002",
+				"Innovative Solutions Inc.",
+				"456 Elm Street, Suite 200",
+				"+1 (888) 888-8888",
+				"contact@innovativesolutions.com",
+				"Jane Smith",
+				"President",
+				"jane.smith@innovativesolutions.com",
+				"Limited Liability Company (LLC)",
+				// Provide financials object (can be null for now)
+				null,
+				// Provide relationships list (can be empty or null for now)
+				null);
+
+		ThirdParty thirdParty = modelMapper.map(thirdPartyDTO, ThirdParty.class);
+		when(thirdPartyRepository.findAll()).thenReturn(Arrays.asList(thirdParty));
+
+		List<ThirdPartyDTO> actualList = thirdPartyService
+				.getThirdPartiesByRelationshipFilter(thirdPartyRelationshipDTO2);
+
+		assertEquals(Arrays.asList(), actualList);
+	}
+
+	@Test
+	public void testDeleteAllThirdPartyRelationships() throws ThirdPartyRelationshipNotFoundException {
+		String thirdPartyId = "TPR-123";
+
+		ThirdPartyRelationshipDTO thirdPartyRelationshipDTO = new ThirdPartyRelationshipDTO(
+				"REL-000001",
+				"Vendor", // Replace with actual relationship type
+				LocalDate.parse("2023-01-01"), // Replace with actual start date
+				null, // End date can be null for ongoing relationships
+				"Active",
+				"Provides marketing automation services",
+				"Contract details (replace with actual details)",
+				"Renewal every 1 year with automatic notification 3 months prior",
+				"Service Level Agreements defined in separate document (link or reference)",
+				"John Smith",
+				Arrays.asList("Project Alpha", "Project Beta"), // Replace with project names
+				Arrays.asList("Jane Doe (jane.doe@company.com)"), // Replace with contact details
+				"Audit trail information (replace with details)");
+
+		ThirdPartyDTO thirdPartyDTO = new ThirdPartyDTO();
+		thirdPartyDTO.setId(thirdPartyId);
+		thirdPartyDTO.setRelationships(Arrays.asList(thirdPartyRelationshipDTO));
+
+		ThirdParty thirdParty = modelMapper.map(thirdPartyDTO, ThirdParty.class);
+
+		when(thirdPartyRepository.findById(thirdPartyId)).thenReturn(Optional.of(thirdParty));
+
+		thirdPartyService.deleteAllThirdPartyRelationships(thirdPartyId);
+	}
+
+	@Test
+	public void testDeleteAllThirdPartyRelationshipsEmpty() throws ThirdPartyRelationshipNotFoundException {
+		String thirdPartyId = "TPR-123";
+
+		ThirdPartyDTO thirdPartyDTO = new ThirdPartyDTO();
+		thirdPartyDTO.setId(thirdPartyId);
+		thirdPartyDTO.setRelationships(Arrays.asList());
+
+		ThirdParty thirdParty = modelMapper.map(thirdPartyDTO, ThirdParty.class);
+
+		when(thirdPartyRepository.findById(thirdPartyId)).thenReturn(Optional.of(thirdParty));
+
+		assertThrows(ThirdPartyRelationshipNotFoundException.class, () -> {
+			thirdPartyService.deleteAllThirdPartyRelationships(thirdPartyId);
+		});
+	}
+
+	@Test
+	public void testDeleteThirdPartyRelationshipOfThirdPartyById() throws ThirdPartyRelationshipNotFoundException {
+		String thirdPartyId = "TPR-123";
+		String thirdPartyRelationshipId = "REL-00001";
+
+		ThirdParty thirdParty = new ThirdParty();
+		thirdParty.setId(thirdPartyId);
+		thirdParty.setRelationships(Arrays.asList());
+
+		when(thirdPartyRepository.findById(thirdPartyId)).thenReturn(Optional.of(thirdParty));
+		assertThrows(ThirdPartyRelationshipNotFoundException.class, () -> {
+			thirdPartyService.deleteThirdPartyRelationshipOfThirdPartyById(thirdPartyId, thirdPartyRelationshipId);
+		});
+	}
+
+	@Test
+	public void testDeleteThirdPartyRelationshipOfThirdPartyByIdSuccess()
+			throws ThirdPartyRelationshipNotFoundException {
+		String thirdPartyId = "TPR-123";
+		String relationshipId = "REL-000001";
+		ThirdPartyRelationshipDTO thirdPartyRelationshipDTO = new ThirdPartyRelationshipDTO(
+				"REL-000001",
+				"Vendor", // Replace with actual relationship type
+				LocalDate.parse("2023-01-01"), // Replace with actual start date
+				null, // End date can be null for ongoing relationships
+				"Active",
+				"Provides marketing automation services",
+				"Contract details (replace with actual details)",
+				"Renewal every 1 year with automatic notification 3 months prior",
+				"Service Level Agreements defined in separate document (link or reference)",
+				"John Smith",
+				Arrays.asList("Project Alpha", "Project Beta"), // Replace with project names
+				Arrays.asList("Jane Doe (jane.doe@company.com)"), // Replace with contact details
+				"Audit trail information (replace with details)");
+
+		ThirdPartyDTO thirdPartyDTO = new ThirdPartyDTO();
+		thirdPartyDTO.setId(thirdPartyId);
+		List<ThirdPartyRelationshipDTO> thirdPartyRelationshipDTOs = new ArrayList<>();
+		thirdPartyRelationshipDTOs.add(thirdPartyRelationshipDTO);
+		thirdPartyDTO.setRelationships(thirdPartyRelationshipDTOs);
+
+		ThirdParty thirdParty = modelMapper.map(thirdPartyDTO, ThirdParty.class);
+
+		when(thirdPartyRepository.findById(thirdPartyId)).thenReturn(Optional.of(thirdParty));
+
+		when(modelMapper.map(thirdPartyDTO, ThirdParty.class)).thenReturn(thirdParty);
+		when(modelMapper.map(thirdParty, ThirdPartyDTO.class)).thenReturn(thirdPartyDTO);
+
+		when(thirdPartyRepository.save(thirdParty)).thenReturn(thirdParty);
+		ThirdPartyDTO actualDTO = thirdPartyService.deleteThirdPartyRelationshipOfThirdPartyById(thirdPartyId,
+				relationshipId);
+
+		thirdPartyRelationshipService.deleteRelationshipbyId(relationshipId);
+		thirdPartyDTO.setRelationships(Arrays.asList());
+
+		assertEquals(thirdPartyDTO, actualDTO);
 	}
 }

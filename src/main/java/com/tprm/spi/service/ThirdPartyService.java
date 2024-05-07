@@ -82,7 +82,6 @@ public class ThirdPartyService {
         return Optional.of(thirdPartyRepository.findById(id)
                 .map(existingThirdParty -> {
                     modelMapper.map(thirdPartyDTOToUpdate, existingThirdParty);
-                    existingThirdParty.setId(id);
                     thirdPartyFinancialService.saveFinancials(
                             modelMapper.map(existingThirdParty.getFinancials(), ThirdPartyFinancialsDTO.class));
                     return convertToThirdPartyDTO(thirdPartyRepository.save(existingThirdParty));
@@ -199,7 +198,7 @@ public class ThirdPartyService {
     public List<ThirdPartyDTO> getThirdPartiesByRelationshipFilter(
             ThirdPartyRelationshipDTO thirdPartyRelationshipDTO) {
         List<String> filteredThirdPartyRelationshipIds = thirdPartyRelationshipService
-                .getThirdPartyIdsByRelationshipFilter(thirdPartyRelationshipDTO, mongoTemplate);
+                .getThirdPartyRelationshipIdsByRelationshipFilter(thirdPartyRelationshipDTO, mongoTemplate);
         List<ThirdPartyDTO> thirdPartyDTOs = getAllThirdParties();
 
         return thirdPartyDTOs.stream()

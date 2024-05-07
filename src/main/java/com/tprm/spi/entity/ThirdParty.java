@@ -52,6 +52,6 @@ public class ThirdParty {
     private ThirdPartyFinancials financials;
 
     @DBRef
-    private List<ThirdPartyRelationship> thirdPartyRelationships;
+    private List<ThirdPartyRelationship> relationships;
 
 }

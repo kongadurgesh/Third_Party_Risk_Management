@@ -158,6 +158,113 @@ public class ThirdPartyServiceTest {
 	}
 
 	@Test
+	public void deleteThirdPartyFinancialsNull() throws ThirdPartyNotFoundException {
+		String thirdPartyId = "TP-000002";
+		ThirdPartyRelationshipDTO thirdPartyRelationshipDTO = new ThirdPartyRelationshipDTO(
+				"REL-000001",
+				"Vendor", // Replace with actual relationship type
+				LocalDate.parse("2023-01-01"), // Replace with actual start date
+				null, // End date can be null for ongoing relationships
+				"Active",
+				"Provides marketing automation services",
+				"Contract details (replace with actual details)",
+				"Renewal every 1 year with automatic notification 3 months prior",
+				"Service Level Agreements defined in separate document (link or reference)",
+				"John Smith",
+				Arrays.asList("Project Alpha", "Project Beta"), // Replace with project names
+				Arrays.asList("Jane Doe (jane.doe@company.com)"), // Replace with contact details
+				"Audit trail information (replace with details)");
+
+		ThirdPartyDTO thirdPartyDTO = new ThirdPartyDTO(
+				"TP-000002",
+				"Innovative Solutions Inc.",
+				"456 Elm Street, Suite 200",
+				"+1 (888) 888-8888",
+				"contact@innovativesolutions.com",
+				"Jane Smith",
+				"President",
+				"jane.smith@innovativesolutions.com",
+				"Limited Liability Company (LLC)",
+				// Provide financials object (can be null for now)
+				null,
+				// Provide relationships list (can be empty or null for now)
+				Arrays.asList(thirdPartyRelationshipDTO));
+
+		ThirdParty thirdParty = modelMapper.map(thirdPartyDTO, ThirdParty.class);
+
+		when(thirdPartyRepository.findById(thirdPartyId)).thenReturn(Optional.of(thirdParty));
+		when(modelMapper.map(thirdParty, ThirdPartyDTO.class)).thenReturn(thirdPartyDTO);
+
+		thirdPartyRepository.deleteById(thirdPartyId);
+
+		String deletionStatus = thirdPartyService.deleteThirdParty(thirdPartyId);
+		assertEquals("Third Party Deleted Successfully", deletionStatus);
+
+	}
+
+	@Test
+	public void deleteThirdPartySuccess() throws ThirdPartyNotFoundException {
+		String thirdPartyId = "TP-000002";
+		ThirdPartyFinancialsDTO thirdPartyFinancialsDTO = new ThirdPartyFinancialsDTO(
+				"FIN-000001",
+				5000000.0,
+				25.0,
+				1250000.0,
+				30.0,
+				3750000.0,
+				875000.0,
+				2.8,
+				2.2,
+				0.4,
+				600000.0);
+
+		ThirdPartyRelationshipDTO thirdPartyRelationshipDTO = new ThirdPartyRelationshipDTO(
+				"REL-000001",
+				"Vendor", // Replace with actual relationship type
+				LocalDate.parse("2023-01-01"), // Replace with actual start date
+				null, // End date can be null for ongoing relationships
+				"Active",
+				"Provides marketing automation services",
+				"Contract details (replace with actual details)",
+				"Renewal every 1 year with automatic notification 3 months prior",
+				"Service Level Agreements defined in separate document (link or reference)",
+				"John Smith",
+				Arrays.asList("Project Alpha", "Project Beta"), // Replace with project names
+				Arrays.asList("Jane Doe (jane.doe@company.com)"), // Replace with contact details
+				"Audit trail information (replace with details)");
+
+		ThirdPartyDTO thirdPartyDTO = new ThirdPartyDTO(
+				"TP-000002",
+				"Innovative Solutions Inc.",
+				"456 Elm Street, Suite 200",
+				"+1 (888) 888-8888",
+				"contact@innovativesolutions.com",
+				"Jane Smith",
+				"President",
+				"jane.smith@innovativesolutions.com",
+				"Limited Liability Company (LLC)",
+				// Provide financials object (can be null for now)
+				thirdPartyFinancialsDTO,
+				// Provide relationships list (can be empty or null for now)
+				Arrays.asList(thirdPartyRelationshipDTO));
+
+		ThirdParty thirdParty = modelMapper.map(thirdPartyDTO, ThirdParty.class);
+
+		when(thirdPartyRepository.findById(thirdPartyId)).thenReturn(Optional.of(thirdParty));
+		when(modelMapper.map(thirdParty, ThirdPartyDTO.class)).thenReturn(thirdPartyDTO);
+
+		String financialId = Optional.of(thirdPartyDTO).get().getFinancials().getFinancialID();
+
+		thirdPartyFinancialsService.deleteFinancialsbyId(financialId);
+
+		thirdPartyRepository.deleteById(thirdPartyId);
+
+		String deletionStatus = thirdPartyService.deleteThirdParty(thirdPartyId);
+		assertEquals("Third Party Deleted Successfully", deletionStatus);
+
+	}
+
+	@Test
 	public void testGetAllThirdParties() {
 		ThirdPartyDTO testThirdPartyDTO1 = new ThirdPartyDTOBuilder()
 				.setId("TPR-123")

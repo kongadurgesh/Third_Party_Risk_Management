@@ -82,7 +82,6 @@ public class ThirdPartyService {
         return Optional.of(thirdPartyRepository.findById(id)
                 .map(existingThirdParty -> {
                     modelMapper.map(thirdPartyDTOToUpdate, existingThirdParty);
-                    existingThirdParty.setId(id);
                     thirdPartyFinancialService.saveFinancials(
                             modelMapper.map(existingThirdParty.getFinancials(), ThirdPartyFinancialsDTO.class));
                     return convertToThirdPartyDTO(thirdPartyRepository.save(existingThirdParty));

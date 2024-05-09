@@ -1,10 +1,10 @@
-package com.tprm.spi;
+package com.tprm;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
-@SpringBootApplication
+@SpringBootApplication(scanBasePackages = { "com.tprm" })
 @EnableTransactionManagement
 public class ThirdPartyApplication {
 

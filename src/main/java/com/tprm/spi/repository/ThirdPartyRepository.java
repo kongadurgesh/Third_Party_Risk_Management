@@ -17,7 +17,6 @@ import com.tprm.spi.entity.ThirdParty;
 public interface ThirdPartyRepository extends MongoRepository<ThirdParty, String> {
     Optional<ThirdParty> findByName(String name);
 
-    @SuppressWarnings("null")
     Page<ThirdParty> findAll(Pageable pageable);
 
     default List<ThirdParty> getThirdPartiesbyFilter(ThirdParty thirdParty, MongoTemplate mongoTemplate) {

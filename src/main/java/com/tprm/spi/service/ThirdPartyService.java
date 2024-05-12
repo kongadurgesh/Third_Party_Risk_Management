@@ -16,11 +16,14 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
+import com.tprm.spi.client.IssuesClient;
 import com.tprm.spi.constants.ThirdPartyConstants;
+import com.tprm.spi.dto.IssueDTO;
 import com.tprm.spi.dto.ThirdPartyDTO;
 import com.tprm.spi.dto.ThirdPartyFinancialsDTO;
 import com.tprm.spi.dto.ThirdPartyRelationshipDTO;
 import com.tprm.spi.entity.ThirdParty;
+import com.tprm.spi.exception.IssueLinkFailureException;
 import com.tprm.spi.exception.ThirdPartyCreationFailureException;
 import com.tprm.spi.exception.ThirdPartyNotFoundException;
 import com.tprm.spi.exception.ThirdPartyRelationshipNotFoundException;
@@ -46,6 +49,9 @@ public class ThirdPartyService {
 
     @Autowired
     private ModelMapper modelMapper;
+
+    @Autowired
+    private IssuesClient issuesClient;
 
     public List<ThirdPartyDTO> getAllThirdParties() {
         List<ThirdParty> thirdParties = thirdPartyRepository.findAll();
@@ -220,5 +226,19 @@ public class ThirdPartyService {
         thirdPartyRelationshipService.deleteAllRelationships(thirdPartyRelationhshipIds);
         thirdPartyRepository.save(convertToThirdPartyEntity(thirdPartyDTO));
         return ThirdPartyConstants.ALL_RELATIONSHIPS_DELETED;
+    }
+
+    public String linkIssuesToThirdParty(String thirdPartyId, List<IssueDTO> issueDTOs)
+            throws IssueLinkFailureException {
+        issueDTOs.forEach(issueDTO -> {
+            issueDTO.setIssueSource(ThirdPartyConstants.THIRD_PARTY);
+            issueDTO.setIssueSourceObjectId(thirdPartyId);
+        });
+        try {
+            issuesClient.linkIssuestoThirdParty(issueDTOs);
+            return ThirdPartyConstants.ISSUES_CREATION_SUCCESS;
+        } catch (Exception e) {
+            throw new IssueLinkFailureException(e.getMessage());
+        }
     }
 }

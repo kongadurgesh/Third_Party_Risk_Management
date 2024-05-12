@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.tprm.spi.constants.ThirdPartyConstants;
+import com.tprm.spi.dto.IssueDTO;
 import com.tprm.spi.dto.ThirdPartyDTO;
 import com.tprm.spi.dto.ThirdPartyFinancialsDTO;
 import com.tprm.spi.dto.ThirdPartyRelationshipDTO;
@@ -159,4 +160,14 @@ public class ThirdPartyController {
         }
     }
 
+    @PostMapping("/{thirdPartyId}/issues")
+    public ResponseEntity<String> linkIssuesToThirdParty(@PathVariable String thirdPartyId,
+            @RequestBody List<IssueDTO> issueDTOs) {
+        try {
+            return ResponseEntity.status(HttpStatus.CREATED)
+                    .body(thirdPartyService.linkIssuesToThirdParty(thirdPartyId, issueDTOs));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        }
+    }
 }

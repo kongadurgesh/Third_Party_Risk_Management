@@ -31,7 +31,7 @@ import jakarta.validation.ConstraintViolationException;
 import jakarta.validation.Valid;
 
 @RestController
-@RequestMapping(path = "/thirdparties")
+@RequestMapping(path = "/api/v1/thirdparties")
 public class ThirdPartyController {
     @Autowired
     private ThirdPartyService thirdPartyService;

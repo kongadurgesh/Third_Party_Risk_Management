@@ -15,7 +15,7 @@ import com.tprm.ism.dto.IssueDTO;
 import com.tprm.ism.service.IssueService;
 
 @RestController
-@RequestMapping(path = "/issues")
+@RequestMapping(path = "/api/v1/issues")
 public class IssueController {
 
     @Autowired

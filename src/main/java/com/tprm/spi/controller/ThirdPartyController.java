@@ -49,6 +49,7 @@ public class ThirdPartyController {
         List<ThirdPartyDTO> thirdPartyDTOs = thirdPartyService.getAllThirdParties();
         return ResponseEntity.ok(thirdPartyDTOs);
     }
+    
 
     @GetMapping
     public ResponseEntity<List<ThirdPartyDTO>> getAllThirdParties(

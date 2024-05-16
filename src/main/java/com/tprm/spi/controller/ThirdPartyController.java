@@ -13,10 +13,12 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.tprm.spi.client.AuthorizationClient;
 import com.tprm.spi.constants.ThirdPartyConstants;
 import com.tprm.spi.dto.IssueDTO;
 import com.tprm.spi.dto.ThirdPartyDTO;
@@ -26,7 +28,9 @@ import com.tprm.spi.exception.ThirdPartyCreationFailureException;
 import com.tprm.spi.exception.ThirdPartyNotFoundException;
 import com.tprm.spi.exception.ThirdPartyRelationshipNotFoundException;
 import com.tprm.spi.exception.ThirdpartyNameConflictException;
+import com.tprm.spi.exception.UnauthorizedException;
 import com.tprm.spi.service.ThirdPartyService;
+import com.tprm.spi.utils.AuthenticationResponse;
 
 import jakarta.validation.ConstraintViolationException;
 import jakarta.validation.Valid;
@@ -37,9 +41,21 @@ public class ThirdPartyController {
     @Autowired
     private ThirdPartyService thirdPartyService;
 
-    @GetMapping
+    @Autowired
+    private AuthorizationClient authorizationClient;
+
+    // @GetMapping
     public ResponseEntity<List<ThirdPartyDTO>> getAllThirdParties() {
         List<ThirdPartyDTO> thirdPartyDTOs = thirdPartyService.getAllThirdParties();
+        return ResponseEntity.ok(thirdPartyDTOs);
+    }
+
+    @GetMapping
+    public ResponseEntity<List<ThirdPartyDTO>> getAllThirdParties(
+            @RequestHeader("username") String userName,
+            @RequestHeader("password") String password)
+            throws UnauthorizedException {
+        List<ThirdPartyDTO> thirdPartyDTOs = thirdPartyService.getAllThirdParties(userName, password);
         return ResponseEntity.ok(thirdPartyDTOs);
     }
 
@@ -170,4 +186,11 @@ public class ThirdPartyController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
     }
+
+    @GetMapping("/test")
+    public ResponseEntity<AuthenticationResponse> authenticate(@RequestHeader("username") String userName,
+            @RequestHeader("password") String password) {
+        return authorizationClient.authenticate(userName, password);
+    }
+
 }

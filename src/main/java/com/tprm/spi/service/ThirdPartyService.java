@@ -16,6 +16,7 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
+import com.tprm.spi.client.AuthorizationClient;
 import com.tprm.spi.client.IssuesClient;
 import com.tprm.spi.constants.ThirdPartyConstants;
 import com.tprm.spi.dto.IssueDTO;
@@ -28,6 +29,7 @@ import com.tprm.spi.exception.ThirdPartyCreationFailureException;
 import com.tprm.spi.exception.ThirdPartyNotFoundException;
 import com.tprm.spi.exception.ThirdPartyRelationshipNotFoundException;
 import com.tprm.spi.exception.ThirdpartyNameConflictException;
+import com.tprm.spi.exception.UnauthorizedException;
 import com.tprm.spi.repository.ThirdPartyRepository;
 
 import jakarta.validation.ConstraintViolationException;
@@ -53,12 +55,26 @@ public class ThirdPartyService {
     @Autowired
     private IssuesClient issuesClient;
 
+    @Autowired
+    private AuthorizationClient authorizationClient;
+
     public List<ThirdPartyDTO> getAllThirdParties() {
         List<ThirdParty> thirdParties = thirdPartyRepository.findAll();
 
         return thirdParties.stream()
                 .map(this::convertToThirdPartyDTO)
                 .collect(Collectors.toList());
+    }
+
+    public List<ThirdPartyDTO> getAllThirdParties(String userName, String password) throws UnauthorizedException {
+        if (authorizationClient.authenticate(userName, password).getStatusCode().is2xxSuccessful()) {
+            List<ThirdParty> thirdParties = thirdPartyRepository.findAll();
+            return thirdParties.stream()
+                    .map(this::convertToThirdPartyDTO)
+                    .collect(Collectors.toList());
+        } else {
+            throw new UnauthorizedException("Please provide User Credentials");
+        }
     }
 
     public Optional<ThirdPartyDTO> getThirdPartyById(String id) {
